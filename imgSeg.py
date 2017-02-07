@@ -20,60 +20,50 @@
 
 import cv2
 import numpy as np
-from PIL import Image
+
 
 # global variables for tweaking
 display_scale = 2
 
 
 # main function displays original and manipulated img, and wait for quit signals
-def main():
+def manip(path):
 
-    # process raw image
-    stack_path = 'pic_30_data/pic_30_data.tif'
-    stack_size = 188
+    raw_1 = cv2.imread(path)
+    # raw_1 = cv2.imread('datasets/30_data/stack_img/img_0.tif')
+    # raw_2 = cv2.imread('datasets/30_data/stack_img/img_1.tif')
 
-    # separate raw image stack; and split into separate impages; 
-    split_stack(stack_path, stack_size)
+    height, width = raw_1.shape[:2]   # take first 2 componenets of tuple for h, w
 
-    # raw_img = cv2.imread('pic_30_data/pic_30_data.tif')
-    # cv2.imshow('new window', raw_img)
-    # height, width = raw_img.shape[:2]   # take first 2 componenets of tuple for h, w
+    # scaling
+    raw_1 = cv2.resize(raw_1, 
+                    (height / display_scale, width / display_scale), 
+                    interpolation = cv2.INTER_CUBIC)  
 
-    # # scaling
-    # raw_img = cv2.resize(raw_img, 
-    #                 (height / display_scale, width / display_scale), 
-    #                 interpolation = cv2.INTER_CUBIC)  
+    # raw_2 = cv2.resize(raw_2, 
+                    # (height / display_scale, width / display_scale), 
+                    # interpolation = cv2.INTER_CUBIC)  
 
-    # # manipulate images; 
-    # manip_img = get_outer_edge(raw_img)
+    # manipulate images; 
+    manip_1 = get_outer_edge(raw_1)
+    # manip_2 = get_outer_edge(raw_2)
 
 
-    # # show both images; 
-    # both = np.hstack((raw_img, manip_img))  
-    # cv2.imshow('left_half', both)
+    # show both images; 
+    # both_1 = np.hstack((raw_1, raw_2))  
+    # cv2.imshow('raw_1, raw_2', both_1)
 
+'''
+### we don't want this module to wait for user interruption 
 
     # wait for keyboard interruption: Q key, or esc
     key_int = cv2.waitKey(0)
     if ((key_int == ord('q')) or (key_int == 27)):              
         print "User_int: Quit key pressed."
         cv2.destroyAllWindows()
-    
+''' 
 
-# split multi-page images into individual images
-# code from Stackoverflow
-def split_stack(path, stack_size):
-    stack = Image.open(path)
-    for i in range(stack_size):
-        try:
-            stack.seek(i)
-            stack.save('pic_30_data/stack_img/img_%s.tif'%(i,))
-        except EOFError:
-            print("EOFError: stack_size %s, but can't find img no. %s" %(stack_size, i)) 
-            break
-    print ("split_stack finished.")
-
+ 
 
 # Align: getAffineTransform; shifts frame, so corners overlap with the first frame; 
 #   - ensures: check ratio, so the picture is not distorted during this translation;   
@@ -96,7 +86,6 @@ def get_outer_edge(img):
     x_lo = 0
     x_hi = 50
 
-
     img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)   # convert to greyscale 
 
     img_gray = cv2.GaussianBlur(img_gray, (5,5), 0)    # Gaussian Blur, 
@@ -111,16 +100,21 @@ def get_outer_edge(img):
     im2, contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
     # convert orig img back to BGR, 
     disp_gray = cv2.cvtColor(img_gray, cv2.COLOR_GRAY2BGR)   # convert to greyscale 
-    cv2.drawContours(disp_gray, contours, -1, (0,255,0), 2) # drawing all contours
-    cv2.imshow("Contour, drawn after binary thesholding", disp_gray)
+    print("-- Now drawing all the contours")
+    cv2.drawContours(disp_gray, contours, -1, (0,255,0), 1) # drawing all contours
+    # cv2.imshow("Contour, drawn after binary thesholding", disp_gray)
     # draw out the lines found
 
 
-    (thresh, img_gray) = cv2.threshold(img_gray, 200, 255, cv2.THRESH_BINARY|cv2.THRESH_OTSU)
-            # This shows a really good black/white contrast; 
-            #  why these numbers tho?
-    # cv2.imshow('after thresholding', img_gray)
-    
+    # (thresh, img_gray) = cv2.threshold(img_gray, 200, 255, cv2.THRESH_BINARY|cv2.THRESH_OTSU)
+    #         # This shows a really good black/white contrast; 
+    #         #  why these numbers tho?
+    # # cv2.imshow('after thresholding', img_gray)
+    return disp_gray
+
+
+
+'''    
     # ---- after all manipulation, now sets region ----
     # sets ROI - region of image - top left; currently hardcoded; later could be UI
 
@@ -171,8 +165,9 @@ def get_outer_edge(img):
 
     # draw out the bounding rectangle
     cv2.rectangle(img_gray, (x_lo, y_lo), (x_hi, y_hi), (255, 0, 0), 5)
+'''
 
-    return img_gray
+    
 
 
 # get line coordinates in order to draw; 
@@ -189,18 +184,6 @@ def findLineCoord(rho, theta):
     return [(x1, y1), (x2, y2)]
 
 
-# # for drawing function  ===  MIGHT BE UNNECESSARY  === 
-# # update point coordinates w.r.t offsets due to bounding rectangle;
-# def update_pt(point, x_offset, y_offset):
-#     pt_x = point[0]
-#     pt_y = point[1]
-#     # print "inside update_pt, x = ", pt_x, "y = ", pt_y,
-#     # print "after update, x = ",pt_x + x_offset, "y = ", pt_y + y_offset
-#     return (pt_x + x_offset, pt_y + y_offset)
-
-
-
-main()      # calling main
 
 
 
