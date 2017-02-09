@@ -11,6 +11,7 @@
 #   - Align frames; // WarpAffine
 #   - distinguish between gamma (light grey) and gamma prime phases (dark grey);
 #   - handle high-contrast twin boundary, w/ diff threshold;
+#   - now manip_images should be saved to a directory; 
 # 
 # Next step: 
 #   - Performance: change to C++ for speed;
@@ -30,8 +31,9 @@ display_scale = 2
 def manip(path):
 
     raw_1 = cv2.imread(path)
-    # raw_1 = cv2.imread('datasets/30_data/stack_img/img_0.tif')
-    # raw_2 = cv2.imread('datasets/30_data/stack_img/img_1.tif')
+    if (raw_1 == None):
+        print("path = %s" %path)
+        print("+++ can't read image, path == NONE")
 
     height, width = raw_1.shape[:2]   # take first 2 componenets of tuple for h, w
 
@@ -40,21 +42,21 @@ def manip(path):
                     (height / display_scale, width / display_scale), 
                     interpolation = cv2.INTER_CUBIC)  
 
-    # raw_2 = cv2.resize(raw_2, 
-                    # (height / display_scale, width / display_scale), 
-                    # interpolation = cv2.INTER_CUBIC)  
-
     # manipulate images; 
     manip_1 = get_outer_edge(raw_1)
-    # manip_2 = get_outer_edge(raw_2)
+
+    # TODO: imshow doesn't display all the image pairs; only most recent one; 
+    #   maybe cv2.imshow overwrites?
+    # # show both images; 
+    # both_1 = np.hstack((raw_1, manip_1))  
+    # cv2.imshow('raw_1, manip_1', both_1)
+    return manip_1
 
 
-    # show both images; 
-    # both_1 = np.hstack((raw_1, raw_2))  
-    # cv2.imshow('raw_1, raw_2', both_1)
+
 
 '''
-### we don't want this module to wait for user interruption 
+### this module (wait for user interruption) is now moved to top_module.py 
 
     # wait for keyboard interruption: Q key, or esc
     key_int = cv2.waitKey(0)
@@ -64,15 +66,9 @@ def manip(path):
 ''' 
 
  
-
-# Align: getAffineTransform; shifts frame, so corners overlap with the first frame; 
-#   - ensures: check ratio, so the picture is not distorted during this translation;   
-#   - get coord of 4 corner points; 
-#   - compare to first pic, and warp it so they overlay
-# 
-
 # get_outer_edge: coarse edge detection, to pick up the outer binding rectangle;
-# for image alignment purposes;
+# TODO: currently only drawing *all the contours it found*
+
 def get_outer_edge(img):
 
     cnt_limit = 5 # num of lines drawn on screen
@@ -89,32 +85,32 @@ def get_outer_edge(img):
     img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)   # convert to greyscale 
 
     img_gray = cv2.GaussianBlur(img_gray, (5,5), 0)    # Gaussian Blur, 
-    # cv2.imshow("w Gaussian (5,5) binary thresh 128", img_gray)
-
-
 
     (thresh, img_gray) = cv2.threshold(img_gray, 200, 255, cv2.THRESH_BINARY|cv2.THRESH_OTSU)
 
     # try drawing the contour there as well? 
     ret, thresh = cv2.threshold(img_gray, 127, 255, 0)
     im2, contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+    
     # convert orig img back to BGR, 
     disp_gray = cv2.cvtColor(img_gray, cv2.COLOR_GRAY2BGR)   # convert to greyscale 
-    print("-- Now drawing all the contours")
-    cv2.drawContours(disp_gray, contours, -1, (0,255,0), 1) # drawing all contours
-    # cv2.imshow("Contour, drawn after binary thesholding", disp_gray)
-    # draw out the lines found
 
+    cv2.drawContours(disp_gray, contours, -1, (0,255,0), 1) # drawing all contours
+
+    return disp_gray
 
     # (thresh, img_gray) = cv2.threshold(img_gray, 200, 255, cv2.THRESH_BINARY|cv2.THRESH_OTSU)
     #         # This shows a really good black/white contrast; 
     #         #  why these numbers tho?
     # # cv2.imshow('after thresholding', img_gray)
-    return disp_gray
+    
 
 
 
-'''    
+'''   
+    # TODO: currently this section not used; could be used to set ROI, 
+    #       for different thresholding values based on regions; 
+
     # ---- after all manipulation, now sets region ----
     # sets ROI - region of image - top left; currently hardcoded; later could be UI
 

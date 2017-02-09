@@ -10,6 +10,8 @@
 #   - read in a multi-page tiff file, after imageJ aligned the stack; 
 #   - calls imgSeg.py for pair-wise comparison, to distinguish between 
 #     gamma (light grey) and gamma prime phases (dark grey);
+#   - saves all manipulated images into a folder; 
+#           -> feed to ImageJ for a flip-book view;
 # 
 # --------------------------------------------------
 
@@ -30,19 +32,21 @@ def main():
     num_files = split_stack(stack_path, stack_size)
     print ('here: num_files= %d' %num_files)
 
-    num_test = 10
+    # num_test = 10            # uncomment for testing mode; 
+    num_test = stack_size
     i = 0
 
     # call functions in other module for pair-wise comparison
-    # for i in range(num_test):   # range (0,5) == [0,5)
     while (i < num_test):
-        print ("checking for loop, i = %s" %i)
+
         # call manipulation function them;
         curr_path = "datasets/30_data/stack_img/img_" + str(i) + ".tif" 
-        print ("== curr_path = %s" %(curr_path))
         curr_res = imgSeg.manip(curr_path)
-        cv2.imshow('curr result', curr_res)
+        res_name = "datasets/30_data/manip_stack/img_"+ str(i) + ".tif"
+        cv2.imwrite(res_name, curr_res)
+
         i += 1
+
 
     # after done with all manip, 
     # wait for keyboard interruption: Q key, or esc
@@ -50,9 +54,6 @@ def main():
     if ((key_int == ord('q')) or (key_int == 27)):              
         print "User_int: Quit key pressed."
         cv2.destroyAllWindows()
-
-
-
 
 
 
