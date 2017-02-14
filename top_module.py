@@ -30,7 +30,6 @@ def main():
 
     # separate raw image stack; and split into separate impages; 
     num_files = split_stack(stack_path, stack_size)
-    print ('here: num_files= %d' %num_files)
 
     # num_test = 10            # uncomment for testing mode; 
     num_test = stack_size
