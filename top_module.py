@@ -7,20 +7,24 @@
 # Dec. 25, 2016
 # --------------------------------------------------
 # Top Module functions:
-#   - read in a multi-page tiff file, after imageJ aligned the stack; 
-#   - calls imgSeg.py for pair-wise comparison, to distinguish between 
-#     gamma (light grey) and gamma prime phases (dark grey);
-#   - saves all manipulated images into a folder; 
-#           -> feed to ImageJ for a flip-book view;
+#   - read in a multi-page tiff file, after imageJ aligned the stack;
+#   - histogram_equalization, to adjust picture contrast;  
+#   - calls imgSeg.py
+#       - draw all contours;
+#       - pair-wise comparison, to distinguish between gamma and gamma' phases;
+#   - saves all manipulated images into a folder - manip_stack;
+#       -> feed the stack into ImageJ for a flip-book view;
 # 
 # --------------------------------------------------
 
 
 import cv2 
 from PIL import Image
+import sys
 
 # import subsidiary files: 
 import imgSeg
+import histo_eqlz as histo
 
 def main():
 
@@ -40,19 +44,27 @@ def main():
 
         # call manipulation function them;
         curr_path = "datasets/30_data/stack_img/img_" + str(i) + ".tif" 
-        curr_res = imgSeg.manip(curr_path)
+        curr_res = histo.histogram(curr_path)
         res_name = "datasets/30_data/manip_stack/img_"+ str(i) + ".tif"
         cv2.imwrite(res_name, curr_res)
 
+        # curr_path = "datasets/30_data/manip_stack/img_"+ str(i) + ".tif"
+        # curr_res = imgSeg.manip(curr_path)
+        # res_name = "datasets/30_data/manip_stack/img_"+ str(i) + ".tif"
+        # cv2.imwrite(res_name, curr_res)
+
+        
+        
         i += 1
 
-
+    sys.exit()
     # after done with all manip, 
     # wait for keyboard interruption: Q key, or esc
     key_int = cv2.waitKey(0)
     if ((key_int == ord('q')) or (key_int == 27)):              
         print "User_int: Quit key pressed."
         cv2.destroyAllWindows()
+
 
 
 
