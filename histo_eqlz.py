@@ -6,21 +6,18 @@
 #
 # Histogram Equalization:
 # increasing image contrasts, before image segmentation;
+#
 # Code followed examples from OpenCV documentations on histogram Equalization;
+# 
+# current functions: 
+#       - currently drawing contours on original binary image, and image after 
+#         histogram equalization;
 # Elim Zhang,
 
 import cv2
 import numpy as np
 from matplotlib import pyplot as plt
 import sys
-
-
-
-
-# global: 
-# (seed_x, seed_y) = (0, 0)       # seed position for flood fill
-# img = cv2.imread(path,0)       
-
 
 
 # ======================================
@@ -31,11 +28,7 @@ using opencv instead
 '''
 def main (path): 
     global orig_bin
-    # main(path = sys.argv[1])
-    path = ("datasets/30_data/stack_img/img_5.tif")
 
-    # path: start without "/" while entering path
-    # def main (path):
 
     img_single_channel= cv2.imread(path,0)        # this chanegs image into 2 channels only;
     img = cv2.imread(path) 
@@ -57,31 +50,30 @@ def main (path):
     #  try binary on both orig and histed pictures; 
     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     (thresh_1, orig_bin) = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY|cv2.THRESH_OTSU)
-    (thresh_1, hist_bin) = cv2.threshold(res, 127, 255, cv2.THRESH_BINARY|cv2.THRESH_OTSU)
+    (thresh_1, res_bin) = cv2.threshold(res, 127, 255, cv2.THRESH_BINARY|cv2.THRESH_OTSU)
 
 
     # step 3: find contour for the twin boundary    
-    # 
-    ret, thresh = cv2.threshold(orig_bin, 127, 255, 0)
+    # 3.1. original image in binary; 
+    ret_orig, thresh_orig = cv2.threshold(orig_bin, 127, 255, 0)
     im, orig_contours, hierarchy = cv2.findContours(orig_bin, cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE) 
-    img_bin = cv2.cvtColor(orig_bin, cv2.COLOR_GRAY2BGR)   # convert to BGR
-
-
+    orig_bin = cv2.cvtColor(orig_bin, cv2.COLOR_GRAY2BGR)   # convert to BGR
     cv2.drawContours(orig_bin, orig_contours, -1, (255,255,255), 1) # drawing all contours
 
-    cv2.imshow("contours - orig_contours", orig_bin)
-    cv2.setMouseCallback('contours - orig_contours', on_click)
-    # update seed position 
-        # show images; 
-    # show2 = np.hstack((img_bin,res_bin))
-    # cv2.imshow("Binary results: (L: original img, R: after histogram)", show2)
+    # 3.2. image after histogram equalization; 
+    ret_res, thresh_res = cv2.threshold(res_bin, 127, 255, 0)
+    im, res_contours, hierarchy = cv2.findContours(res_bin, cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE) 
+    res_bin = cv2.cvtColor(res_bin, cv2.COLOR_GRAY2BGR)   # convert to BGR
+    cv2.drawContours(res_bin, orig_contours, -1, (255,255,255), 1) # drawing all contours
+
 
 
     # A *MUST* if use cv2.imshow to debug
     while (1):
         # show a BGR style of orig_bin;
-        cv2.cvtColor(orig_bin, cv2.COLOR_GRAY2BGR)
-        cv2.imshow('contours - orig_contours', orig_bin)
+        show = np.hstack((orig_bin, res_bin))
+        cv2.imshow("original binary vs. histogram binary ", show)
+
         k = cv2.waitKey(1) & 0xFF
         if (k == 27) or (k == ord("q")): 
             print "User_int: Quit key pressed."
@@ -91,43 +83,9 @@ def main (path):
 
 
 
-# mouse callback function; 
-# allows user to click on image, to determine position of flood fill seed; 
-# user expected to click within twin boundary region
-def on_click(event, x, y, flags, param):
-    global seed_x, seed_y
-    # print "seed position, = ", (seed_x, seed_y)
-
-    if event == cv2.EVENT_LBUTTONDOWN:
-        # print "clicked, (x,y) = ", (x,y)
-        # drawing out the position of seed that's selected
-        seed_x, seed_y = x, y 
-        cv2.cvtColor(orig_bin, cv2.COLOR_GRAY2BGR)
-        cv2.circle(orig_bin, (x, y), 10, (255, 255, 0), -1)
-    return 
-
-
-# floodfill function;
-
-
-    
+# path: start without "/" while entering path
+# path = ("datasets/30_data/stack_img/img_5.tif")
 main(path = sys.argv[1])
-
-
-
-# # mouse callback function; 
-# # allows user to click on image, to determine position of flood fill seed; 
-# # user expected to click within twin boundary region
-# def on_click(event, x, y, flags, param):
-#     global seed_x, seed_y
-#     print "seed position, = ", (seed_x, seed_y)
-
-#     if event == cv2.EVENT_LBUTTONDOWN:
-#         print "clicked, (x,y) = ", (x,y)
-#         # drawing out the position of seed that's selected
-#         seed_x, seed_y = x, y 
-#     return 
-
 
 
 
