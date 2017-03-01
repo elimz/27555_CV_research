@@ -1,3 +1,6 @@
+# Using floodfill to generate masks for the binary images
+
+
 
 
 '''
@@ -65,10 +68,10 @@ def flood_fill(path_img, seed_pos):
         cv2.floodFill(img, mask, seed_pos, newVal= (255, 255, 0), 
                     flags = (4 | (255 << 8) ))
                        # flags = (4 | (255 << 8)| cv2.FLOODFILL_MASK_ONLY))
-        img_show = cv2.resize(img, (h / 2, w / 2), interpolation = cv2.INTER_CUBIC) 
-        cv2.imshow("img", img_show)
-        mask_show = cv2.resize(mask, (h / 2, w / 2), interpolation = cv2.INTER_CUBIC) 
-        cv2.imshow("mask", mask_show)
+        # img_show = cv2.resize(img, (h / 2, w / 2), interpolation = cv2.INTER_CUBIC) 
+        cv2.imshow("img", img)
+        # mask_show = cv2.resize(mask, (h / 2, w / 2), interpolation = cv2.INTER_CUBIC) 
+        cv2.imshow("mask", mask)
 
 
         ###### TODO: trial: user input, mouse click for floodfill seed; ######
@@ -101,7 +104,7 @@ def flood_fill(path_img, seed_pos):
     cv2.destroyAllWindows()
 
 # main(sys.argv[1])
-flood_fill("datasets/30_data/stack_img/img_5.tif", (0,0))
+flood_fill("screenshots/contour_diff_hierarchies/contours_img5_hierachy_-1.tif", (60,60))
 
 
 

@@ -67,12 +67,25 @@ def main (path):
     cv2.drawContours(res_bin, orig_contours, -1, (255,255,255), 1) # drawing all contours
 
 
+    ##### TRIAL FOR FLOODFILL #####
+    # step 4: flood fill, starting at a hard-coded seed position
+    seed_pos = (60, 60)
+    mask_res_bin = np.zeros((height/2 + 2, width/2 + 2), np.uint8)
+    mask_orig_bin = np.zeros((height/2 + 2, width/2 + 2), np.uint8)
+    # flags set the color used to fill the mask;
+    cv2.floodFill(res_bin, mask_res_bin, seed_pos, newVal= (255, 0, 0), 
+                    flags = (4 | (255 << 8) | cv2.FLOODFILL_MASK_ONLY))
+    cv2.floodFill(orig_bin, mask_orig_bin, seed_pos, newVal= (255, 0, 0), 
+                    flags = (4 | (255 << 8) | cv2.FLOODFILL_MASK_ONLY))
+    ##### END TRIAL FOR FLOODFILL #####
 
     # A *MUST* if use cv2.imshow to debug
     while (1):
         # show a BGR style of orig_bin;
         show = np.hstack((orig_bin, res_bin))
         cv2.imshow("original binary vs. histogram binary ", show)
+        show_masks = np.hstack((mask_orig_bin, mask_res_bin))
+        cv2.imshow ("mask_orig_bin, mask_res_bin", show_masks)
 
         k = cv2.waitKey(1) & 0xFF
         if (k == 27) or (k == ord("q")): 
