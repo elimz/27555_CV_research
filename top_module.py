@@ -25,6 +25,7 @@ import sys
 # import subsidiary files: 
 import imgSeg
 import histo_eqlz as histo
+import trial_floodfill as ff
 
 def main():
 
@@ -44,7 +45,8 @@ def main():
 
         # call manipulation function them;
         curr_path = "datasets/30_data/stack_img/img_" + str(i) + ".tif" 
-        curr_res = histo.histogram(curr_path)
+        # curr_res = histo.histogram(curr_path)
+        curr_res = ff.
         res_name = "datasets/30_data/manip_stack/img_"+ str(i) + ".tif"
         cv2.imwrite(res_name, curr_res)
 
@@ -52,9 +54,6 @@ def main():
         # curr_res = imgSeg.manip(curr_path)
         # res_name = "datasets/30_data/manip_stack/img_"+ str(i) + ".tif"
         # cv2.imwrite(res_name, curr_res)
-
-        
-        
         i += 1
 
     sys.exit()

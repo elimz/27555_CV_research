@@ -33,8 +33,10 @@ def on_click(event, x, y, flags, param):
     return 
 
 
-def main(path_img):
+# def main(path_img):
 
+# function returns the mask 
+def flood_fill(path_img, seed_pos):
     global seed          # seed position modified by on_click function
     global draw_enabled       # only use flood fill if draw_enabled is 1;
     global img 
@@ -48,21 +50,25 @@ def main(path_img):
 
     # setting seed position
 
-    mask = np.zeros((h + 2, w + 2), np.uint8)       # initializing mask;
+    mask = np.zeros((h + 2, w + 2), np.uint8)
+    # scaling
+    # width, height = img.shape[:2]   # take first 2 componenets of tuple for h, w
+    # img = cv2.resize(img, (height / 2, width / 2), interpolation = cv2.INTER_CUBIC) 
+    # mask = np.zeros((h/2 + 2, w/2 + 2), np.uint8)       # initializing mask;
+    # mask = cv2.resize(mask, (height / 2, width / 2), interpolation = cv2.INTER_CUBIC)  
 
     while (1):
 
         ###### hardcoded floodfill seed; ######
 
-        # print "checking -- draw_enabled =", draw_enabled
-        # print "seed =", seed
-
-        # floodfill if draw is enabled
-        # only fill the mask; 
-        cv2.floodFill(img, mask, (60, 60), newVal= (255, 0, 0), 
-                       flags = (4 | (255 << 8)| cv2.FLOODFILL_MASK_ONLY))
-        cv2.imshow("img", img)
-        cv2.imshow("mask", mask)
+        # flags set the color used to fill the mask;
+        cv2.floodFill(img, mask, seed_pos, newVal= (255, 255, 0), 
+                    flags = (4 | (255 << 8) ))
+                       # flags = (4 | (255 << 8)| cv2.FLOODFILL_MASK_ONLY))
+        img_show = cv2.resize(img, (h / 2, w / 2), interpolation = cv2.INTER_CUBIC) 
+        cv2.imshow("img", img_show)
+        mask_show = cv2.resize(mask, (h / 2, w / 2), interpolation = cv2.INTER_CUBIC) 
+        cv2.imshow("mask", mask_show)
 
 
         ###### TODO: trial: user input, mouse click for floodfill seed; ######
@@ -94,8 +100,8 @@ def main(path_img):
             break
     cv2.destroyAllWindows()
 
-main(sys.argv[1])
-
+# main(sys.argv[1])
+flood_fill("datasets/30_data/stack_img/img_5.tif", (0,0))
 
 
 
