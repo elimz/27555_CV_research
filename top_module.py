@@ -25,7 +25,7 @@ import sys
 # import subsidiary files: 
 import imgSeg
 import histo_eqlz as histo
-import trial_floodfill as ff
+
 
 def main():
 
@@ -36,8 +36,7 @@ def main():
     # separate raw image stack; and split into separate impages; 
     num_files = split_stack(stack_path, stack_size)
 
-    # num_test = 10            # uncomment for testing mode; 
-    num_test = stack_size
+    num_test = stack_size            # uncomment for testing mode; 
     i = 0
 
     # call functions in other module for pair-wise comparison
@@ -45,9 +44,8 @@ def main():
 
         # call manipulation function them;
         curr_path = "datasets/30_data/stack_img/img_" + str(i) + ".tif" 
-        # curr_res = histo.histogram(curr_path)
-        curr_res = ff.
-        res_name = "datasets/30_data/manip_stack/img_"+ str(i) + ".tif"
+        curr_res = histo.histogram(curr_path)
+        res_name = "datasets/30_data/mask_stack/img_"+ str(i) + ".tif"
         cv2.imwrite(res_name, curr_res)
 
         # curr_path = "datasets/30_data/manip_stack/img_"+ str(i) + ".tif"
@@ -55,7 +53,7 @@ def main():
         # res_name = "datasets/30_data/manip_stack/img_"+ str(i) + ".tif"
         # cv2.imwrite(res_name, curr_res)
         i += 1
-
+    print "finished writing all new images"
     sys.exit()
     # after done with all manip, 
     # wait for keyboard interruption: Q key, or esc

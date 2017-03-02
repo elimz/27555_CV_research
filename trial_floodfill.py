@@ -1,6 +1,6 @@
+
 # Using floodfill to generate masks for the binary images
-
-
+# has the potential to let user set seed position for floodfill;
 
 
 '''
@@ -35,10 +35,9 @@ def on_click(event, x, y, flags, param):
         cv2.circle(img, (x, y), 10, (0, 255, 0), -1)
     return 
 
+# function returns the mask 
 
 # def main(path_img):
-
-# function returns the mask 
 def flood_fill(path_img, seed_pos):
     global seed          # seed position modified by on_click function
     global draw_enabled       # only use flood fill if draw_enabled is 1;
@@ -104,7 +103,7 @@ def flood_fill(path_img, seed_pos):
     cv2.destroyAllWindows()
 
 # main(sys.argv[1])
-flood_fill("screenshots/contour_diff_hierarchies/contours_img5_hierachy_-1.tif", (60,60))
+# flood_fill("screenshots/contour_diff_hierarchies/contours_img5_hierachy_-1.tif", (60,60))
 
 
 
