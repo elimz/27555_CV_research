@@ -23,6 +23,16 @@ import cv2
 import numpy as np
 
 
+# Helper functions declaration; 
+def manip(path):
+    return
+
+def get_outer_edge(img):
+    return
+    
+def findLineCoord(rho, theta):
+    return
+
 # global variables for tweaking
 display_scale = 2
 

@@ -44,7 +44,7 @@ def main():
 
         # call manipulation function them;
         curr_path = "datasets/30_data/stack_img/img_" + str(i) + ".tif" 
-        curr_res = histo.histogram(curr_path)
+        curr_res = histo.make_mask(curr_path)
         res_name = "datasets/30_data/mask_stack/img_"+ str(i) + ".tif"
         cv2.imwrite(res_name, curr_res)
 

@@ -40,7 +40,7 @@ def px_comparison(im1_path, im2_path):
 #       hand-traced groundtruth;
 # output: a score for similarity between the calculated image and hand-traced groundtruth
 
-def main():
+def main(path):
 
     # ------------ STEP 1 ------------: 
     # load all hand-traced ROI, from this path; 
@@ -55,7 +55,7 @@ def main():
 
 
     # ------------ STEP 2 ------------: 
-    # load img_12.tif from manip folder 
+    # load img from manip folder 
     #       this picture underwent all image manipulations already ; 
     #       then find the ROI's, and compare to hand-traced ROi;
     # REGION 1:
@@ -68,7 +68,7 @@ def main():
     y_lo_3, y_hi_3 = 600, 750
     x_lo_3, x_hi_3 = 800, 950
 
-    img = cv2.imread("datasets/30_data/manip_stack/img_12.tif")
+    img = cv2.imread(path)
     (height, width) = img.shape[0:2]
     traced_rois = cv2.resize(traced_rois, (height * 2, width * 2), 
                     interpolation = cv2.INTER_CUBIC) 
@@ -121,15 +121,11 @@ def main():
 #               ####### Helper Functions #######
 
 # px_comparison: compares two images pixel by pixel; 
-#   input: paths of 2 images, with same sizes and same num of channels
+#   input: 2 images, with same sizes and same num of channels
 #   output: a float to represent % difference between the 2 images;
 def px_comparison(im1, im2):
     # this function will update global variables
     global diff, total
-
-    # # read in 2 images;
-    # im1 = cv2.imread(im1_path)
-    # im2 = cv2.imread(im2_path)
 
     # make sure inputs meet the requirements;
     assert (im1.shape == im2.shape), "Error: im1, im2 shape mismatch;"
@@ -155,8 +151,9 @@ def px_comparison(im1, im2):
 
 #              ####### Helper Functions end #######
 
-
-main()
+# path of segmented image running the code I wrote; 
+path = "datasets/30_data/roi/img_12_roi_comb.tif"
+main(path)
 
 
 
