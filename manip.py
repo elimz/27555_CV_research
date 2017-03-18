@@ -128,6 +128,9 @@ def histo_eqlz_mask (img_path, mask_path):
     roi_show_white = cv2.resize(roi_show_white, (height / 2, width / 2), interpolation = cv2.INTER_CUBIC) 
 
     print roi_show_black.shape == roi_show_white.shape
+    show1 = np.hstack((roi_show_black, roi_show_white))
+    # cv2.imshow("ROI comparison: black bkg, white bkg",show1)
+
     
 
 
@@ -140,10 +143,12 @@ def histo_eqlz_mask (img_path, mask_path):
 
 
     ### Plotting; for progress report only.
-    show1 = np.hstack((roi_show_black, roi_show_white))
+
+
     show2 = np.hstack((equalz_black, equalz_white))
-    cv2.imshow("ROI comparison: black bkg, white bkg",show1)
-    cv2.imshow("Equalization results: black bkg, white bkg",show2)
+    cv2.imshow("equalz_black", equalz_black)
+
+    # cv2.imshow("Equalization results: black bkg, white bkg",show2)
 
 
     
@@ -173,7 +178,8 @@ def histo_eqlz_mask (img_path, mask_path):
 
         
     show3 = np.hstack((img_b, img_w))
-    cv2.imshow('contours: black bkg, white bkg', show3)
+    cv2.imshow("img_b", img_b)
+    # cv2.imshow('contours: black bkg, white bkg', show3)
 
     ### FOR DEBUGGING AND VIEWING ONLY 
     # img = cv2.resize(img, (height / 2, width / 2), interpolation = cv2.INTER_CUBIC) 
