@@ -25,6 +25,7 @@ import sys
 # import subsidiary files: 
 import imgSeg
 import histo_eqlz as histo
+import make_mask
 
 
 def main():
@@ -39,12 +40,16 @@ def main():
     num_test = stack_size            # uncomment for testing mode; 
     i = 0
 
+    # ----- Step 1: call manip.py to do image segmentations on each image; -----
+    # and save to manip_img folder; 
+
+
     # call functions in other module for pair-wise comparison
     while (i < num_test):
 
         # call manipulation function them;
         curr_path = "datasets/30_data/stack_img/img_" + str(i) + ".tif" 
-        curr_res = histo.make_mask(curr_path)
+        curr_res = make_mask.main(curr_path)
         res_name = "datasets/30_data/mask_stack/img_"+ str(i) + ".tif"
         cv2.imwrite(res_name, curr_res)
 
@@ -54,6 +59,19 @@ def main():
         # cv2.imwrite(res_name, curr_res)
         i += 1
     print "finished writing all new images"
+
+
+    # ----- Step 2: make masks for each image, to mark out twin boundaries -----
+    # outputs masks to mask_stack folder
+
+
+    ######## TODO
+
+
+
+    #######
+
+
     sys.exit()
     # after done with all manip, 
     # wait for keyboard interruption: Q key, or esc

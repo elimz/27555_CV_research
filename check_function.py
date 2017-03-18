@@ -89,7 +89,7 @@ def main(path):
 
     cv2.imshow("manip image, marked with ROIs", img_rois)
     cv2.imwrite("datasets/30_data/roi/img_12_manip_rois.tif", img_rois)
-    print "Marked image now saved."
+    print "Marked images are now saved."
 
 
     # ------------ STEP 3 ------------: 

@@ -19,8 +19,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 import sys
 
-# function declarations
-def make_mask (path): return
+# function prototype
 def binary_thresh (img): return    
         # apply binary threshold on normal region of img
 def histo_eqlz_mask (mask): return  
@@ -28,23 +27,22 @@ def histo_eqlz_mask (mask): return
 
 
 
-
-
 def main():
     img_path = "datasets/30_data/stack_img/img_12.tif"
     mask_path = "datasets/30_data/mask_stack/img_12.tif"
-    normal_region = binary_thresh (img_path, mask_path)
+    # normal_region = binary_thresh (img_path, mask_path)
     twin_region = histo_eqlz_mask (img_path, mask_path)
 
-    result = cv2.bitwise_or(normal_region, twin_region)
+    result = twin_region
+    # result = cv2.bitwise_or(normal_region, twin_region)
     
     ### FOR DEBUGGING AND IMAGE SHOWING ONLY
-    # height, width = result.shape[0:2]
-    # result = cv2.resize(result, (height / 2, width / 2), interpolation = cv2.INTER_CUBIC) 
+    height, width = result.shape[0:2]
+    result = cv2.resize(result, (height / 2, width / 2), interpolation = cv2.INTER_CUBIC) 
     # cv2.imshow("combining twin and normal regions", result)
 
-    
-    cv2.imwrite("datasets/30_data/roi/img_12_roi_comb.tif", result)
+
+    # cv2.imwrite("datasets/30_data/roi/img_12_roi_comb.tif", result)
 
     # A *MUST* if use cv2.imshow to debug
     while (1):
@@ -55,26 +53,6 @@ def main():
             break
     cv2.destroyAllWindows()
 
-
-def make_mask (path): 
- 
-    img = cv2.imread(path) 
-    width, height = img.shape[:2]   
-
-    # step 1: try to use binary, and get the twin boundary regions? 
-    #  try binary on both orig and histed pictures; 
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    _, orig_bin = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY|cv2.THRESH_OTSU)
-
-    # step 2: flood fill to create a mask;
-    seed_pos = (150, 150)
-    mask_orig_bin = np.zeros((height + 2, width + 2), np.uint8)
-        # flags set the color used to fill only the mask, not the image;
-    cv2.floodFill(orig_bin, mask_orig_bin, seed_pos, newVal= (255, 0, 0), 
-                    flags = (4 | (255 << 8) | cv2.FLOODFILL_MASK_ONLY))
-    
-    # RETURN VALUE: currently onily returns the mask from orig binary img
-    return mask_orig_bin
 
 
 
@@ -97,6 +75,7 @@ def binary_thresh (img_path, mask_path):
     mask = cv2.bitwise_not(mask)
 
     assert (mask.shape == img.shape), ("Error: mask and img have diff dimensions")
+
     width, height = img.shape[0:2] 
 
 
@@ -134,41 +113,76 @@ def histo_eqlz_mask (img_path, mask_path):
     mask = np.delete(mask, 0, axis = 1)    # delete first col of mask ;
     mask = np.delete(mask, -1, axis = 1)    # delete last col of mask ;
 
-    # no need to invert mask; 
-    #       currently white regions (== 0) is the twin regions
-
     assert (mask.shape == img.shape), ("Error: mask and img have diff dimensions")
 
     width, height = img.shape[0:2] 
 
     # mark out only the twin regions;
     twin_region = cv2.bitwise_and(img, mask)    # ROI now selected;
+    roi_show_black = cv2.resize(twin_region, (height / 2, width / 2), interpolation = cv2.INTER_CUBIC) 
+
+    # select the normal region, and mark it as white; 
+    inv_mask = cv2.bitwise_not(mask)
+    roi_show_white = cv2.bitwise_or(twin_region, inv_mask) # normal region selected; 
+                                                # turn into white; 
+    roi_show_white = cv2.resize(roi_show_white, (height / 2, width / 2), interpolation = cv2.INTER_CUBIC) 
+
+    print roi_show_black.shape == roi_show_white.shape
+    
+
 
     # TODO: want to change the unselected region into white, 
         # might make equalizeHist result better
     # twin_region = cv2.equalizeHist(unselected) 
-    equal_1 = cv2.equalizeHist(twin_region) 
+    equalz_black = cv2.equalizeHist(roi_show_black)
+    equalz_white = cv2.equalizeHist(roi_show_white)
+
+
+
+    ### Plotting; for progress report only.
+    show1 = np.hstack((roi_show_black, roi_show_white))
+    show2 = np.hstack((equalz_black, equalz_white))
+    cv2.imshow("ROI comparison: black bkg, white bkg",show1)
+    cv2.imshow("Equalization results: black bkg, white bkg",show2)
+
+
     
-    img = equal_1
+    img_b = equalz_black
+    img_w = equalz_white
 
     # binary threshold on selected region; 
-    _, img = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY|cv2.THRESH_OTSU)
+    _, img_b = cv2.threshold(img_b, 127, 255, cv2.THRESH_BINARY|cv2.THRESH_OTSU)
             #  first return value is threshold; not needed here; 
-    _, img_contours, _ = cv2.findContours(img, cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE) 
+    _, img_contours_b, _ = cv2.findContours(img_b, cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE) 
             #   return value of findContours is (im, contours, hierarchy);
             #   only need contours, and the other 2 don't matter; 
-    img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)   # convert to BGR
-    cv2.drawContours(img, img_contours, -1, (255,255,255), 1) # drawing all contours
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)   # convert back to gray;
+    img_b = cv2.cvtColor(img_b, cv2.COLOR_GRAY2BGR)   # convert to BGR
+    cv2.drawContours(img_b, img_contours_b, -1, (255,255,255), 1) # drawing all contours
+    img_b = cv2.cvtColor(img_b, cv2.COLOR_BGR2GRAY)   # convert back to gray;
 
-   
+
+    # same as above block
+    _, img_w = cv2.threshold(img_w, 127, 255, cv2.THRESH_BINARY|cv2.THRESH_OTSU)
+            #  first return value is threshold; not needed here; 
+    _, img_contours_w, _ = cv2.findContours(img_w, cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE) 
+            #   return value of findContours is (im, contours, hierarchy);
+            #   only need contours, and the other 2 don't matter; 
+    img_w = cv2.cvtColor(img_w, cv2.COLOR_GRAY2BGR)   # convert to BGR
+    cv2.drawContours(img_w, img_contours_w, -1, (255,255,255), 1) # drawing all contours
+    img_w = cv2.cvtColor(img_w, cv2.COLOR_BGR2GRAY)   # convert back to gray;
+
+        
+    show3 = np.hstack((img_b, img_w))
+    cv2.imshow('contours: black bkg, white bkg', show3)
+
     ### FOR DEBUGGING AND VIEWING ONLY 
     # img = cv2.resize(img, (height / 2, width / 2), interpolation = cv2.INTER_CUBIC) 
     # mask = cv2.resize(mask, (height / 2, width / 2), interpolation = cv2.INTER_CUBIC) 
     # equal_1 = cv2.resize(equal_1, (height / 2, width / 2), interpolation = cv2.INTER_CUBIC) 
 
-
-    assert (mask.shape == img.shape), ("Error: mask and img have diff dimensions")
+    # print "mask.shape = ", mask.shape, "img.shape = ", img.shape
+    # assert (mask.shape == img.shape), ("Error 2: mask and img have diff dimensions")
+    
 
     return img
 
@@ -176,8 +190,5 @@ def histo_eqlz_mask (img_path, mask_path):
 
 
 main()
-
-
-
 
 
