@@ -18,7 +18,7 @@ import sys
 def main (path): 
  
     img = cv2.imread(path) 
-    width, height = img.shape[:2]   
+    height, width = img.shape[:2]   
 
     # step 1: try to use binary, and get the twin boundary regions? 
     #  try binary on both orig and histed pictures; 

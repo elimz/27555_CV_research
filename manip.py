@@ -24,7 +24,8 @@ def binary_thresh (img): return
         # apply binary threshold on normal region of img
 def histo_eqlz_mask (mask): return  
         # apply histogram equalization on twin region
-
+def remove_noise (img): return
+        # Aims to remove 1-pixel noise in the background 
 
 # def main(img_path, mask_path)
 def main():
@@ -33,7 +34,7 @@ def main():
     mask_path = "datasets/30_data/mask_stack/img_12.tif"
     
     img = cv2.imread(img_path)
-    width, height = img.shape[0:2]
+    height, width = img.shape[0:2]
 
     normal_region = binary_thresh (img_path, mask_path)
     # do opening on normal_region, to reduce noises in the background;
@@ -41,27 +42,29 @@ def main():
 
     normal_closing = cv2.morphologyEx(normal_region, cv2.MORPH_CLOSE, kernel_3_sq)
 
-    normal_show = cv2.resize(normal_closing, (height / 2, width / 2), interpolation = cv2.INTER_CUBIC) 
-    cv2.imshow("normal_closing, kernel (3,3)", normal_show) 
+    # cv2.imshow("normal_closing, kernel (3,3) closing ", normal_closing) 
+    normal_region = normal_region[0:300, :]
+    cv2.imshow("normal_region", normal_region)
+    denoise = remove_noise(normal_region)
+    # cv2.imwrite("denoise.png", denoise)
+    # denoise = denoise[0 : 300, : ]
+    cv2.imshow("denoise", denoise)
 
-
-
-    # cv2.imwrite("normal_opening.png", normal_closing)
-
-    # cv2.imshow("normal_closing", normal_closing)
     # normal_show = cv2.resize(normal_closing, (height / 2, width / 2), interpolation = cv2.INTER_CUBIC) 
     # cv2.imshow("normal_region", normal_show)
 
 
+
+    # ----------- twin region ------------
     twin_region = histo_eqlz_mask (img_path, mask_path)
     ## twin_show = cv2.resize(twin_region, (height / 2, width / 2), interpolation = cv2.INTER_CUBIC) 
     ## cv2.imshow("twin_region", twin_show)
 
     
-    # result = twin_region
+    result = twin_region ##1
     
     # print twin_region.shape, normal_region.shape
-    result = cv2.bitwise_or(normal_region, twin_region)
+    ##1 result = cv2.bitwise_or(normal_region, twin_region)
     
     ### FOR DEBUGGING AND IMAGE SHOWING ONLY
     height, width = result.shape[0:2]
@@ -103,7 +106,8 @@ def binary_thresh (img_path, mask_path):
 
     assert (mask.shape == img.shape), ("Error: mask and img have diff dimensions")
 
-    width, height = img.shape[0:2] 
+    
+    height, width = img.shape[0:2] 
 
 
     # binary threshold on selected region; 
@@ -142,7 +146,7 @@ def histo_eqlz_mask (img_path, mask_path):
 
     assert (mask.shape == img.shape), ("Error: mask and img have diff dimensions")
 
-    width, height = img.shape[0:2] 
+    height, width = img.shape[0:2] 
 
     # mark out only the twin regions;
     twin_region = cv2.bitwise_and(img, mask)    # ROI now selected;
@@ -218,8 +222,84 @@ def histo_eqlz_mask (img_path, mask_path):
 
     return img_b
 
+# # remove image by scaling down and up;
+# def remove_noise(img):
+#     width, height = img.shape[0:2]
+
+#     kernel = np.ones((2,2), np.uint8)
+
+#     erode_1 = cv2.erode(img, kernel, iterations = 1)
+#     erode_1 = erode_1[0 : 300, : ]
+#     cv2.imshow("erode_1, kernel (2,2), 1 iteration", erode_1)
+
+#     erode_2 = cv2.erode(img, kernel, iterations = 2)
+#     erode_2 = erode_2[0 : 300, : ]
+#     cv2.imshow("erode_2, 2 iterations", erode_2)
+    
+#     # bigger = cv2.resize(img, (height , width), interpolation = cv2.INTER_CUBIC) 
+#     # cv2.imshow("bigger", bigger)
+#     result = erode_1
+#     return result 
 
 
+
+# remove single-pixel noises in the background
+def remove_noise (img): 
+    height, width = img.shape[0:2]  ##TODO: fix everything else
+    # height /= 5
+    # height = 300 ## hardcoded currenly
+
+    # print "here----", width, height
+
+    for row in range (0, height):
+        for col in range (0, width):
+
+            if (img[row][col]):
+                # print "this is a white pixel"
+                if is_small_pixel(img, row, col):
+                # reset it to be black;
+                    # print "== here"
+                    img[row][col] = 0
+                    # print "now =", img[row][col]
+    print "done removing noises"
+    return img
+        # Aims to remove 1-pixel noise in the background 
+
+def is_small_pixel(img, row, col):
+    # check up down left right, UR UL, DR, DL;
+    dcol = [-1, 0, 1]
+    drow = [-1, 0, 1]
+
+    total_neigh = 0
+
+    for i in range (0, 3):
+        for j in range (0, 3):
+            row += drow[i]
+            col += dcol[j]
+            if is_in_frame(img, row, col):
+                # check wether it has a neighbor; 
+                # if less than 1 neighbor, return true. 
+                ## TODO: here 1 neighbor is hardcoded;
+                if (img[row][col]):
+                    total_neigh += 1
+    
+    if (total_neigh < 1):
+        print "found small pixel at ", row, col
+        return True
+
+    return False
+
+
+def is_in_frame(img, row, col):
+    height, width = img.shape[0:2]
+
+    if ((row < 0) or
+        (row >= height) or
+        (col < 0) or
+        (col >= width)):
+        return False
+
+    return True
 
 main()
 
