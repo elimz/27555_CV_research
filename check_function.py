@@ -99,7 +99,7 @@ def main(path):
     # scale down to show easily; 
     img_rois = cv2.resize(img_rois, (height/2, width/2), interpolation = cv2.INTER_CUBIC) 
 
-    cv2.imshow("manip image, marked with ROIs", img_rois)
+    cv2.imshow("manip image, marked with ROIs; diff = 39.711%", img_rois)
     cv2.imwrite("datasets/30_data/roi/img_12_manip_rois.tif", img_rois)
     print "Marked images are now saved."
 
@@ -113,7 +113,7 @@ def main(path):
     total_diff = (diff_1 + diff_2 + diff_3)
     total_total = (total_1 + total_2 + total_3)
 
-    print "----- here", (total_diff, total_total)
+    print "(different pixels, total pixels) = ", (total_diff, total_total)
 
     result = float (total_diff) / float(total_total)
     print "Difference Percentage = ", result

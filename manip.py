@@ -26,8 +26,9 @@ def histo_eqlz_mask (mask): return
         # apply histogram equalization on twin region
 
 
-
+# def main(img_path, mask_path)
 def main():
+    ## currently hard-coded paths; later paths will be fed into main() as inputs
     img_path = "datasets/30_data/stack_img/img_12.tif"
     mask_path = "datasets/30_data/mask_stack/img_12.tif"
     
@@ -36,20 +37,13 @@ def main():
 
     normal_region = binary_thresh (img_path, mask_path)
     # do opening on normal_region, to reduce noises in the background;
-    kernel_1 = np.ones((1,1), np.uint8)
-    kernel_2 = np.ones((3,3), np.uint8)
-    kernel_3 = np.ones((4,4), np.uint8)
-    # cv2.imshow("orig,", normal_region)
-    normal_closing_1 = cv2.morphologyEx(normal_region, cv2.MORPH_CLOSE, kernel_1)
-    normal_closing_2 = cv2.morphologyEx(normal_region, cv2.MORPH_CLOSE, kernel_2)
-    normal_closing_3 = cv2.morphologyEx(normal_region, cv2.MORPH_CLOSE, kernel_3)
+    kernel_3_sq = np.ones((3,3), np.uint8)
 
-    normal_show_1 = cv2.resize(normal_closing_1, (height / 2, width / 2), interpolation = cv2.INTER_CUBIC) 
-    # cv2.imshow("normal_closing, kernel (1,1)", normal_show_1)
-    normal_show_2 = cv2.resize(normal_closing_2, (height / 2, width / 2), interpolation = cv2.INTER_CUBIC)
-    cv2.imshow("normal_closing, kernel (3,3)", normal_show_2) 
-    normal_show_3 = cv2.resize(normal_closing_3, (height / 2, width / 2), interpolation = cv2.INTER_CUBIC) 
-    # cv2.imshow("normal_closing, kernel (4,4)", normal_show_3)
+    normal_closing = cv2.morphologyEx(normal_region, cv2.MORPH_CLOSE, kernel_3_sq)
+
+    normal_show = cv2.resize(normal_closing, (height / 2, width / 2), interpolation = cv2.INTER_CUBIC) 
+    cv2.imshow("normal_closing, kernel (3,3)", normal_show) 
+
 
 
     # cv2.imwrite("normal_opening.png", normal_closing)

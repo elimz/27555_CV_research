@@ -24,7 +24,7 @@ import sys
 
 # import subsidiary files: 
 import imgSeg
-import histo_eqlz as histo
+import manip 
 import make_mask
 
 
@@ -34,23 +34,22 @@ def main():
     stack_path = 'datasets/30_data/feb6_orig_flip.tif'
     stack_size = 30           # number of images in that stack
 
-    # separate raw image stack; and split into separate impages; 
+    # separate raw image stack; and write to a stack of individual impages; 
     num_files = split_stack(stack_path, stack_size)
 
     num_test = stack_size            # uncomment for testing mode; 
     i = 0
 
-    # ----- Step 1: call manip.py to do image segmentations on each image; -----
-    # and save to manip_img folder; 
-
+    # ----- Step 1: make masks for each image, to mark out twin boundaries -----
+    # and save to mask_stack folder; 
 
     # call functions in other module for pair-wise comparison
     while (i < num_test):
 
-        # call manipulation function them;
+        # find original img, and make a mask;
         curr_path = "datasets/30_data/stack_img/img_" + str(i) + ".tif" 
         curr_res = make_mask.main(curr_path)
-        res_name = "datasets/30_data/mask_stack/img_"+ str(i) + ".tif"
+        res_name = "datasets/30_data/mask_stack/img_" + str(i) + ".tif"
         cv2.imwrite(res_name, curr_res)
 
         # curr_path = "datasets/30_data/manip_stack/img_"+ str(i) + ".tif"
@@ -58,14 +57,20 @@ def main():
         # res_name = "datasets/30_data/manip_stack/img_"+ str(i) + ".tif"
         # cv2.imwrite(res_name, curr_res)
         i += 1
-    print "finished writing all new images"
+    print "finished writing all masks. "
 
 
-    # ----- Step 2: make masks for each image, to mark out twin boundaries -----
-    # outputs masks to mask_stack folder
-
-
-    ######## TODO
+    # ----- Step 2: call manip.py to do image segmentations on each image;  -----
+    # outputs masks to manip_img folder
+    i = 0
+    while (i < num_test):
+        # call manip on each image, and output to manip_img folder;
+        img_path = "datasets/30_data/stack_img/img_" + str(i) + ".tif" 
+        mask_path = "datasets/30_data/mask_stack/img_" + str(i) + ".tif"
+        manip_res = manip.main(curr_path, mask_path)
+        manip_name = "datasets/30_data/manip_stack/img_" + str(i) + ".tif"
+        cv2.imwrite(manip_name, manip_res)
+    print "finished writing all manipulated images. "
 
 
 
