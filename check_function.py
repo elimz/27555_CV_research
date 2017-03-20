@@ -34,6 +34,13 @@ total = 0
 def px_comparison(im1_path, im2_path):
     return # defined below 
 
+# get_contours:
+#   - go to designated folder and find the traced ROI pictures; 
+#   - use morphological Transformation and threshold, to get contours of the
+#            binary image that I hand-traced sloppily using Photoshop.
+def get_contours():
+    return
+
 
 #                   ######## Main ###########
 # main: compares regions of interests (ROI) in segmented image, and the 
@@ -42,11 +49,16 @@ def px_comparison(im1_path, im2_path):
 
 def main(path):
 
+    # ------------ STEP 0 ------------:  
+    # call helper function, to get contours of the hand-traced groundtruth images
+    # it saves to path = "datasets/30_data/roi/img_12_roi_1_contours.png" etc
+    get_contours()
+
     # ------------ STEP 1 ------------: 
     # load all hand-traced ROI, from this path; 
-    traced_roi_1 = cv2.imread("datasets/30_data/roi/img_12_roi_1_traced.png")
-    traced_roi_2 = cv2.imread("datasets/30_data/roi/img_12_roi_2_traced.png")
-    traced_roi_3 = cv2.imread("datasets/30_data/roi/img_12_roi_3_traced.png")
+    traced_roi_1 = cv2.imread("datasets/30_data/roi/img_12_roi_1_contours.png")
+    traced_roi_2 = cv2.imread("datasets/30_data/roi/img_12_roi_2_contours.png")
+    traced_roi_3 = cv2.imread("datasets/30_data/roi/img_12_roi_3_contours.png")
     traced_rois = cv2.imread("datasets/30_data/roi/img_12_rois.tif")
     (height, width) = traced_rois.shape[0:2]
     traced_rois = cv2.resize(traced_rois, (height / 2, width / 2), 
@@ -149,11 +161,42 @@ def px_comparison(im1, im2):
     #TODO: maybe label the differences in another color?
     return (diff, total)
 
+
+# get_contours:
+#   - go to designated folder and find the traced ROI pictures; 
+#   - use morphological Transformation and threshold, to get contours of the
+#            binary image that I hand-traced sloppily using Photoshop.
+def get_contours():
+
+    for i in range (1, 4):
+        im_path = "datasets/30_data/roi/img_12_roi_" + str(i) + "_traced.png"
+        im = cv2.imread(im_path, 0)
+
+        # set kernel
+        kernel = np.ones((3,3), np.uint8)
+
+        # get gradient using morphological transformation 
+        gradient = cv2.morphologyEx(im, cv2.MORPH_GRADIENT, kernel)
+        
+        # use threshold to reduce the "halo" around grients found
+        ret, thresh1 = cv2.threshold(gradient, 200, 255, cv2.THRESH_BINARY)
+
+        write_path = "datasets/30_data/roi/img_12_roi_" + str(i) + "_contours.png"
+        cv2.imwrite(write_path, thresh1)
+
+    print "get_contours Finished writing all images."
+
+
 #              ####### Helper Functions end #######
 
-# path of segmented image running the code I wrote; 
-path = "datasets/30_data/roi/img_12_roi_comb.tif"
-main(path)
+
+
+
+
+# this is the path to image, which is the result of my image segmentation code;
+# in other words, my segmentationcode will eventually save its result to this path
+path_of_result = "datasets/30_data/roi/img_12_roi_result.tif"
+main(path_of_result)
 
 
 

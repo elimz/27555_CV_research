@@ -1,6 +1,6 @@
 # 27555 Computer Vision for Microstructure 3D visualization;
-# Elim Zhang, Prof. Degraef's lab
-# Written Feb. 14, 2017
+#       Elim Zhang, Prof. Degraef's lab
+#       Written on Feb. 14, 2017
 #
 # part of helper functions, called by topMod
 #
@@ -30,11 +30,44 @@ def histo_eqlz_mask (mask): return
 def main():
     img_path = "datasets/30_data/stack_img/img_12.tif"
     mask_path = "datasets/30_data/mask_stack/img_12.tif"
-    # normal_region = binary_thresh (img_path, mask_path)
-    twin_region = histo_eqlz_mask (img_path, mask_path)
+    
+    img = cv2.imread(img_path)
+    width, height = img.shape[0:2]
 
-    result = twin_region
-    # result = cv2.bitwise_or(normal_region, twin_region)
+    normal_region = binary_thresh (img_path, mask_path)
+    # do opening on normal_region, to reduce noises in the background;
+    kernel_1 = np.ones((1,1), np.uint8)
+    kernel_2 = np.ones((3,3), np.uint8)
+    kernel_3 = np.ones((4,4), np.uint8)
+    # cv2.imshow("orig,", normal_region)
+    normal_closing_1 = cv2.morphologyEx(normal_region, cv2.MORPH_CLOSE, kernel_1)
+    normal_closing_2 = cv2.morphologyEx(normal_region, cv2.MORPH_CLOSE, kernel_2)
+    normal_closing_3 = cv2.morphologyEx(normal_region, cv2.MORPH_CLOSE, kernel_3)
+
+    normal_show_1 = cv2.resize(normal_closing_1, (height / 2, width / 2), interpolation = cv2.INTER_CUBIC) 
+    # cv2.imshow("normal_closing, kernel (1,1)", normal_show_1)
+    normal_show_2 = cv2.resize(normal_closing_2, (height / 2, width / 2), interpolation = cv2.INTER_CUBIC)
+    cv2.imshow("normal_closing, kernel (3,3)", normal_show_2) 
+    normal_show_3 = cv2.resize(normal_closing_3, (height / 2, width / 2), interpolation = cv2.INTER_CUBIC) 
+    # cv2.imshow("normal_closing, kernel (4,4)", normal_show_3)
+
+
+    # cv2.imwrite("normal_opening.png", normal_closing)
+
+    # cv2.imshow("normal_closing", normal_closing)
+    # normal_show = cv2.resize(normal_closing, (height / 2, width / 2), interpolation = cv2.INTER_CUBIC) 
+    # cv2.imshow("normal_region", normal_show)
+
+
+    twin_region = histo_eqlz_mask (img_path, mask_path)
+    ## twin_show = cv2.resize(twin_region, (height / 2, width / 2), interpolation = cv2.INTER_CUBIC) 
+    ## cv2.imshow("twin_region", twin_show)
+
+    
+    # result = twin_region
+    
+    # print twin_region.shape, normal_region.shape
+    result = cv2.bitwise_or(normal_region, twin_region)
     
     ### FOR DEBUGGING AND IMAGE SHOWING ONLY
     height, width = result.shape[0:2]
@@ -119,13 +152,14 @@ def histo_eqlz_mask (img_path, mask_path):
 
     # mark out only the twin regions;
     twin_region = cv2.bitwise_and(img, mask)    # ROI now selected;
-    roi_show_black = cv2.resize(twin_region, (height / 2, width / 2), interpolation = cv2.INTER_CUBIC) 
+    ## roi_show_black = cv2.resize(twin_region, (height / 2, width / 2), interpolation = cv2.INTER_CUBIC) 
+    roi_show_black = twin_region
 
     # select the normal region, and mark it as white; 
     inv_mask = cv2.bitwise_not(mask)
     roi_show_white = cv2.bitwise_or(twin_region, inv_mask) # normal region selected; 
                                                 # turn into white; 
-    roi_show_white = cv2.resize(roi_show_white, (height / 2, width / 2), interpolation = cv2.INTER_CUBIC) 
+    ## roi_show_white = cv2.resize(roi_show_white, (height / 2, width / 2), interpolation = cv2.INTER_CUBIC) 
 
     print roi_show_black.shape == roi_show_white.shape
     show1 = np.hstack((roi_show_black, roi_show_white))
@@ -143,10 +177,8 @@ def histo_eqlz_mask (img_path, mask_path):
 
 
     ### Plotting; for progress report only.
-
-
     show2 = np.hstack((equalz_black, equalz_white))
-    cv2.imshow("equalz_black", equalz_black)
+    ## cv2.imshow("equalz_black", equalz_black)
 
     # cv2.imshow("Equalization results: black bkg, white bkg",show2)
 
@@ -178,7 +210,7 @@ def histo_eqlz_mask (img_path, mask_path):
 
         
     show3 = np.hstack((img_b, img_w))
-    cv2.imshow("img_b", img_b)
+    ## cv2.imshow("img_b", img_b)
     # cv2.imshow('contours: black bkg, white bkg', show3)
 
     ### FOR DEBUGGING AND VIEWING ONLY 
@@ -190,7 +222,7 @@ def histo_eqlz_mask (img_path, mask_path):
     # assert (mask.shape == img.shape), ("Error 2: mask and img have diff dimensions")
     
 
-    return img
+    return img_b
 
 
 
