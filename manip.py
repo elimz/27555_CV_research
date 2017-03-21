@@ -44,11 +44,11 @@ def main():
 
     # cv2.imshow("normal_closing, kernel (3,3) closing ", normal_closing) 
     normal_region = normal_region[0:300, :]
-    cv2.imshow("normal_region", normal_region)
+    # cv2.imshow("normal_region", normal_region)
     denoise = remove_noise(normal_region)
     # cv2.imwrite("denoise.png", denoise)
     # denoise = denoise[0 : 300, : ]
-    cv2.imshow("denoise", denoise)
+    # cv2.imshow("denoise", denoise)
 
     # normal_show = cv2.resize(normal_closing, (height / 2, width / 2), interpolation = cv2.INTER_CUBIC) 
     # cv2.imshow("normal_region", normal_show)
@@ -109,6 +109,48 @@ def binary_thresh (img_path, mask_path):
     
     height, width = img.shape[0:2] 
 
+    ## trial 
+    # trial 1: just want to see the original image; 
+    trial = cv2.bitwise_and(img, mask)
+    # trial2; blur the original image to reduce bkg noise
+    cv2.imshow("binary threshold", trial)
+    blur_gauss = cv2.GaussianBlur(trial, (3,3), 0)
+
+
+    # kernel = np.ones((3,3), np.uint8)
+    # xfm_1 = cv2.morphologyEx(equalz_1, cv2.MORPH_GRADIENT, kernel)
+    # cv2.imshow("equalz_1 + hist ", xfm_1)
+
+    # cv2.imwrite("bin_thresh_normal_reg.png", trial)
+
+    # trial 3; what about a numpy array ;
+    # new_bkg = np.full((height, width), (65), dtype = np.uint8)
+    # cv2.imshow("new_bkg", new_bkg) # YAY IT WORKS!
+    # # SLOWWWWWWW
+    # new_color = 70
+    # for row in range (0, height):
+    #     for col in range(0, width):
+    #         if (trial[row][col] < 20):
+    #             # if it's black, change it to new color 
+    #             trial[row][col] = new_color
+    #             blur_gauss[row][col] = new_color
+
+
+
+    # trial 2: want to try morphological xfrm
+    kernel = np.ones((3,3), np.uint8)
+
+    # cv2.imwrite("xfm.png", xfm)
+    xfm_2 = cv2.morphologyEx(blur_gauss, cv2.MORPH_GRADIENT, kernel)
+    # cv2.imshow("xfm_2 ", xfm_2)
+    equalz_xfm_2 = cv2.equalizeHist(xfm_2)
+    height, width = equalz_xfm_2.shape[:2]
+    # show_2 = cv2.resize(equalz_xfm_2, (height / 2, width / 2), interpolation = cv2.INTER_CUBIC) 
+    cv2.imshow("morph_gradient + equalizeHist", equalz_xfm_2)
+    thresh_val = 190
+    _, im = cv2.threshold(equalz_xfm_2, thresh_val, 255, cv2.THRESH_BINARY)
+    cv2.imshow('im', im)
+
 
     # binary threshold on selected region; 
     _, img = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY|cv2.THRESH_OTSU)
@@ -123,6 +165,9 @@ def binary_thresh (img_path, mask_path):
     # mask out normal regions of image;  
     assert (mask.shape == img.shape), ("Error: mask and img have diff dimensions")
     normal_region = cv2.bitwise_and(img, mask)
+    show = cv2.resize(normal_region, (height / 2, width / 2), interpolation = cv2.INTER_CUBIC) 
+    # cv2.imshow("contours method", show)
+
 
     return normal_region
 
@@ -222,84 +267,11 @@ def histo_eqlz_mask (img_path, mask_path):
 
     return img_b
 
-# # remove image by scaling down and up;
-# def remove_noise(img):
-#     width, height = img.shape[0:2]
+# a helper function for normal region segmentation, aiming to reduce noises in bkg;
+# morph_gradient doesn't work well when twin region is masked out and thus black;
+# this function sets a *CURRENTLY HARDCODED* grey color, to the twin region; 
 
-#     kernel = np.ones((2,2), np.uint8)
-
-#     erode_1 = cv2.erode(img, kernel, iterations = 1)
-#     erode_1 = erode_1[0 : 300, : ]
-#     cv2.imshow("erode_1, kernel (2,2), 1 iteration", erode_1)
-
-#     erode_2 = cv2.erode(img, kernel, iterations = 2)
-#     erode_2 = erode_2[0 : 300, : ]
-#     cv2.imshow("erode_2, 2 iterations", erode_2)
-    
-#     # bigger = cv2.resize(img, (height , width), interpolation = cv2.INTER_CUBIC) 
-#     # cv2.imshow("bigger", bigger)
-#     result = erode_1
-#     return result 
-
-
-
-# remove single-pixel noises in the background
-def remove_noise (img): 
-    height, width = img.shape[0:2]  ##TODO: fix everything else
-    # height /= 5
-    # height = 300 ## hardcoded currenly
-
-    # print "here----", width, height
-
-    for row in range (0, height):
-        for col in range (0, width):
-
-            if (img[row][col]):
-                # print "this is a white pixel"
-                if is_small_pixel(img, row, col):
-                # reset it to be black;
-                    # print "== here"
-                    img[row][col] = 0
-                    # print "now =", img[row][col]
-    print "done removing noises"
-    return img
-        # Aims to remove 1-pixel noise in the background 
-
-def is_small_pixel(img, row, col):
-    # check up down left right, UR UL, DR, DL;
-    dcol = [-1, 0, 1]
-    drow = [-1, 0, 1]
-
-    total_neigh = 0
-
-    for i in range (0, 3):
-        for j in range (0, 3):
-            row += drow[i]
-            col += dcol[j]
-            if is_in_frame(img, row, col):
-                # check wether it has a neighbor; 
-                # if less than 1 neighbor, return true. 
-                ## TODO: here 1 neighbor is hardcoded;
-                if (img[row][col]):
-                    total_neigh += 1
-    
-    if (total_neigh < 1):
-        print "found small pixel at ", row, col
-        return True
-
-    return False
-
-
-def is_in_frame(img, row, col):
-    height, width = img.shape[0:2]
-
-    if ((row < 0) or
-        (row >= height) or
-        (col < 0) or
-        (col >= width)):
-        return False
-
-    return True
+# def set_gray_bkg
 
 main()
 

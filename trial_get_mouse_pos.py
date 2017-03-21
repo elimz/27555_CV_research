@@ -22,9 +22,10 @@ def on_click(event, x, y, flags, param):
 
         # drawing out the position of seed that's selected
         seed = x, y                     # update the global
-        print im[x,y]
+        print "im[x,y] = ", im[x,y]
+        print "im[x][y] = ", im[x][y]
 
-        cv2.circle(im, (x, y), 10, (255, 255, 0), -1)
+        cv2.circle(im, (x, y), 5, (255, 255, 0), -1)
     return 
 
 

@@ -99,7 +99,7 @@ def main(path):
     # scale down to show easily; 
     img_rois = cv2.resize(img_rois, (height/2, width/2), interpolation = cv2.INTER_CUBIC) 
 
-    cv2.imshow("manip image, marked with ROIs; diff = 39.711%", img_rois)
+    cv2.imshow("manip image, marked with ROIs; diff = " + str("20.44%"), img_rois)
     cv2.imwrite("datasets/30_data/roi/img_12_manip_rois.tif", img_rois)
     print "Marked images are now saved."
 
@@ -195,7 +195,10 @@ def get_contours():
 
 # this is the path to image, which is the result of my image segmentation code;
 # in other words, my segmentationcode will eventually save its result to this path
-path_of_result = "datasets/30_data/roi/img_12_roi_result.tif"
+
+
+# path_of_result = "datasets/30_data/roi/img_12_roi_result.tif"
+path_of_result = "morph_grad_thresh_190.png"
 main(path_of_result)
 
 
