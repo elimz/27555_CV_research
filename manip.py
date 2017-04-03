@@ -34,45 +34,27 @@ def main():
     mask_path = "datasets/30_data/mask_stack/img_12.tif"
     
     img = cv2.imread(img_path)
-    height, width = img.shape[0:2]
-
     normal_region = binary_thresh (img_path, mask_path)
-    # do opening on normal_region, to reduce noises in the background;
-    kernel_3_sq = np.ones((3,3), np.uint8)
-
-    normal_closing = cv2.morphologyEx(normal_region, cv2.MORPH_CLOSE, kernel_3_sq)
-
-    # cv2.imshow("normal_closing, kernel (3,3) closing ", normal_closing) 
-    normal_region = normal_region[0:300, :]
-    # cv2.imshow("normal_region", normal_region)
-    denoise = remove_noise(normal_region)
-    # cv2.imwrite("denoise.png", denoise)
-    # denoise = denoise[0 : 300, : ]
-    # cv2.imshow("denoise", denoise)
-
-    # normal_show = cv2.resize(normal_closing, (height / 2, width / 2), interpolation = cv2.INTER_CUBIC) 
-    # cv2.imshow("normal_region", normal_show)
 
 
 
     # ----------- twin region ------------
-    twin_region = histo_eqlz_mask (img_path, mask_path)
+    # twin_region = histo_eqlz_mask (img_path, mask_path)
+    twin_region = canny_on_twin(img_path, mask_path)
     ## twin_show = cv2.resize(twin_region, (height / 2, width / 2), interpolation = cv2.INTER_CUBIC) 
     ## cv2.imshow("twin_region", twin_show)
 
     
-    result = twin_region ##1
+    # result = twin_region ##1
     
     # print twin_region.shape, normal_region.shape
-    ##1 result = cv2.bitwise_or(normal_region, twin_region)
+    result = cv2.bitwise_or(normal_region, twin_region)
     
     ### FOR DEBUGGING AND IMAGE SHOWING ONLY
     height, width = result.shape[0:2]
     result = cv2.resize(result, (height / 2, width / 2), interpolation = cv2.INTER_CUBIC) 
-    # cv2.imshow("combining twin and normal regions", result)
-
-
-    # cv2.imwrite("datasets/30_data/roi/img_12_roi_comb.tif", result)
+    cv2.imshow("combining twin and normal regions", result)
+    # cv2.imwrite("datasets/30_data/roi/img_12_roi_result.tif", result)
 
     # A *MUST* if use cv2.imshow to debug
     while (1):
@@ -109,68 +91,45 @@ def binary_thresh (img_path, mask_path):
     
     height, width = img.shape[0:2] 
 
-    ## trial 
-    # trial 1: just want to see the original image; 
-    trial = cv2.bitwise_and(img, mask)
-    # trial2; blur the original image to reduce bkg noise
-    cv2.imshow("binary threshold", trial)
-    blur_gauss = cv2.GaussianBlur(trial, (3,3), 0)
 
+    trial = cv2.bitwise_and(img, mask)      # carve out the normal region;
+    
+    blur_gauss = cv2.GaussianBlur(trial, (3,3), 0) # blur to remove background noise
 
-    # kernel = np.ones((3,3), np.uint8)
-    # xfm_1 = cv2.morphologyEx(equalz_1, cv2.MORPH_GRADIENT, kernel)
-    # cv2.imshow("equalz_1 + hist ", xfm_1)
-
-    # cv2.imwrite("bin_thresh_normal_reg.png", trial)
-
-    # trial 3; what about a numpy array ;
-    # new_bkg = np.full((height, width), (65), dtype = np.uint8)
-    # cv2.imshow("new_bkg", new_bkg) # YAY IT WORKS!
-    # # SLOWWWWWWW
-    # new_color = 70
-    # for row in range (0, height):
-    #     for col in range(0, width):
-    #         if (trial[row][col] < 20):
-    #             # if it's black, change it to new color 
-    #             trial[row][col] = new_color
-    #             blur_gauss[row][col] = new_color
-
-
-
-    # trial 2: want to try morphological xfrm
+    # morphological transformation - gradient
     kernel = np.ones((3,3), np.uint8)
+    xfm = cv2.morphologyEx(blur_gauss, cv2.MORPH_GRADIENT, kernel)
+    equalz_xfm = cv2.equalizeHist(xfm)
 
-    # cv2.imwrite("xfm.png", xfm)
-    xfm_2 = cv2.morphologyEx(blur_gauss, cv2.MORPH_GRADIENT, kernel)
-    # cv2.imshow("xfm_2 ", xfm_2)
-    equalz_xfm_2 = cv2.equalizeHist(xfm_2)
-    height, width = equalz_xfm_2.shape[:2]
-    # show_2 = cv2.resize(equalz_xfm_2, (height / 2, width / 2), interpolation = cv2.INTER_CUBIC) 
-    cv2.imshow("morph_gradient + equalizeHist", equalz_xfm_2)
+    # cv2.imshow("morph_gradient + equalizeHist", equalz_xfm)
     thresh_val = 190
-    _, im = cv2.threshold(equalz_xfm_2, thresh_val, 255, cv2.THRESH_BINARY)
-    cv2.imshow('im', im)
+    _, equalz_xfm = cv2.threshold(equalz_xfm, thresh_val, 255, cv2.THRESH_BINARY)
+    # cv2.imshow('im', equalz_xfm)
+
+    return equalz_xfm
 
 
-    # binary threshold on selected region; 
-    _, img = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY|cv2.THRESH_OTSU)
-            #  first return value is threshold; not needed here; 
-    _, img_contours, _ = cv2.findContours(img, cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE) 
-            #   return value of findContours is (im, contours, hierarchy);
-            #   only need contours, and the other 2 don't matter; 
-    img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)   # convert to BGR
-    cv2.drawContours(img, img_contours, -1, (255,255,255), 1) # drawing all contours
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)   # convert back to gray;
 
-    # mask out normal regions of image;  
+# new trial on twin regions;
+def canny_on_twin (img_path, mask_path):
+    img = cv2.imread(img_path, 0)
+    mask = cv2.imread(mask_path, 0) 
+
+    # need to cut out 2 rows and 2 cols, so mask has the same shape as img; 
+    mask = np.delete(mask, 0, axis = 0)    # delete first row of mask;
+    mask = np.delete(mask, -1, axis = 0)   # delete last row of mask;
+    mask = np.delete(mask, 0, axis = 1)    # delete first col of mask ;
+    mask = np.delete(mask, -1, axis = 1)    # delete last col of mask ;
+
     assert (mask.shape == img.shape), ("Error: mask and img have diff dimensions")
-    normal_region = cv2.bitwise_and(img, mask)
-    show = cv2.resize(normal_region, (height / 2, width / 2), interpolation = cv2.INTER_CUBIC) 
-    # cv2.imshow("contours method", show)
 
+    height, width = img.shape[0:2] 
 
-    return normal_region
-
+    # mark out only the twin regions;
+    twin_region = cv2.bitwise_and(img, mask)    # ROI now selected;
+    edges = cv2.Canny(twin_region, 60, 130)
+    
+    return edges
 
 
 
@@ -193,22 +152,21 @@ def histo_eqlz_mask (img_path, mask_path):
 
     height, width = img.shape[0:2] 
 
+
     # mark out only the twin regions;
     twin_region = cv2.bitwise_and(img, mask)    # ROI now selected;
-    ## roi_show_black = cv2.resize(twin_region, (height / 2, width / 2), interpolation = cv2.INTER_CUBIC) 
+    # roi_show_black = cv2.resize(twin_region, (height / 2, width / 2), interpolation = cv2.INTER_CUBIC) 
     roi_show_black = twin_region
+    cv2.imshow("roi_show_black", roi_show_black)
+    cv2.imwrite("datasets/30_data/roi/twin_black.tif", roi_show_black)
+
 
     # select the normal region, and mark it as white; 
     inv_mask = cv2.bitwise_not(mask)
     roi_show_white = cv2.bitwise_or(twin_region, inv_mask) # normal region selected; 
                                                 # turn into white; 
-    ## roi_show_white = cv2.resize(roi_show_white, (height / 2, width / 2), interpolation = cv2.INTER_CUBIC) 
-
-    print roi_show_black.shape == roi_show_white.shape
-    show1 = np.hstack((roi_show_black, roi_show_white))
-    # cv2.imshow("ROI comparison: black bkg, white bkg",show1)
-
-    
+    # roi_show_white = cv2.resize(roi_show_white, (height / 2, width / 2), interpolation = cv2.INTER_CUBIC) 
+    cv2.imwrite("datasets/30_data/roi/twin_white.tif", roi_show_white)
 
 
     # TODO: want to change the unselected region into white, 
@@ -217,7 +175,7 @@ def histo_eqlz_mask (img_path, mask_path):
     equalz_black = cv2.equalizeHist(roi_show_black)
     equalz_white = cv2.equalizeHist(roi_show_white)
 
-
+    cv2.imwrite ("./equalz_black.tif", equalz_black)
 
     ### Plotting; for progress report only.
     show2 = np.hstack((equalz_black, equalz_white))
@@ -260,10 +218,6 @@ def histo_eqlz_mask (img_path, mask_path):
     # img = cv2.resize(img, (height / 2, width / 2), interpolation = cv2.INTER_CUBIC) 
     # mask = cv2.resize(mask, (height / 2, width / 2), interpolation = cv2.INTER_CUBIC) 
     # equal_1 = cv2.resize(equal_1, (height / 2, width / 2), interpolation = cv2.INTER_CUBIC) 
-
-    # print "mask.shape = ", mask.shape, "img.shape = ", img.shape
-    # assert (mask.shape == img.shape), ("Error 2: mask and img have diff dimensions")
-    
 
     return img_b
 
