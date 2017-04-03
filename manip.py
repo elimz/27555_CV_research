@@ -30,8 +30,8 @@ def remove_noise (img): return
 # def main(img_path, mask_path)
 def main():
     ## currently hard-coded paths; later paths will be fed into main() as inputs
-    img_path = "datasets/30_data/stack_img/img_12.tif"
-    mask_path = "datasets/30_data/mask_stack/img_12.tif"
+    img_path = "datasets/30_data/stack_img/img_20.tif"
+    mask_path = "datasets/30_data/mask_stack/img_20.tif"
     
     img = cv2.imread(img_path)
     normal_region = binary_thresh (img_path, mask_path)
@@ -39,8 +39,8 @@ def main():
 
 
     # ----------- twin region ------------
-    # twin_region = histo_eqlz_mask (img_path, mask_path)
-    twin_region = canny_on_twin(img_path, mask_path)
+    twin_region = histo_eqlz_mask (img_path, mask_path)
+    # twin_region = canny_on_twin(img_path, mask_path)
     ## twin_show = cv2.resize(twin_region, (height / 2, width / 2), interpolation = cv2.INTER_CUBIC) 
     ## cv2.imshow("twin_region", twin_show)
 
@@ -52,9 +52,9 @@ def main():
     
     ### FOR DEBUGGING AND IMAGE SHOWING ONLY
     height, width = result.shape[0:2]
-    result = cv2.resize(result, (height / 2, width / 2), interpolation = cv2.INTER_CUBIC) 
-    cv2.imshow("combining twin and normal regions", result)
-    # cv2.imwrite("datasets/30_data/roi/img_12_roi_result.tif", result)
+    # result = cv2.resize(result, (height / 2, width / 2), interpolation = cv2.INTER_CUBIC) 
+    # cv2.imshow("combining twin and normal regions", result)
+    cv2.imwrite("datasets/30_data/roi/img_12_roi_result_1.tif", result)
 
     # A *MUST* if use cv2.imshow to debug
     while (1):
@@ -158,7 +158,7 @@ def histo_eqlz_mask (img_path, mask_path):
     # roi_show_black = cv2.resize(twin_region, (height / 2, width / 2), interpolation = cv2.INTER_CUBIC) 
     roi_show_black = twin_region
     cv2.imshow("roi_show_black", roi_show_black)
-    cv2.imwrite("datasets/30_data/roi/twin_black.tif", roi_show_black)
+    cv2.imwrite("datasets/30_data/roi/twin_black_1.tif", roi_show_black)
 
 
     # select the normal region, and mark it as white; 
@@ -166,7 +166,7 @@ def histo_eqlz_mask (img_path, mask_path):
     roi_show_white = cv2.bitwise_or(twin_region, inv_mask) # normal region selected; 
                                                 # turn into white; 
     # roi_show_white = cv2.resize(roi_show_white, (height / 2, width / 2), interpolation = cv2.INTER_CUBIC) 
-    cv2.imwrite("datasets/30_data/roi/twin_white.tif", roi_show_white)
+    cv2.imwrite("datasets/30_data/roi/twin_white_1.tif", roi_show_white)
 
 
     # TODO: want to change the unselected region into white, 

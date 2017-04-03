@@ -198,7 +198,8 @@ def get_contours():
 
 
 # path_of_result = "datasets/30_data/roi/img_12_roi_result.tif"
-path_of_result = "morph_grad_thresh_190.png"
+# path_of_result = "morph_grad_thresh_190.png"
+path_of_result =  "datasets/30_data/roi/img_12_roi_result_1.tif"
 main(path_of_result)
 
 
