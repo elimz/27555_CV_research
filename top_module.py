@@ -23,7 +23,7 @@ from PIL import Image
 import sys
 
 # import subsidiary files: 
-import imgSeg
+# import imgSeg
 import manip 
 import make_mask
 
@@ -31,59 +31,55 @@ import make_mask
 def main():
 
     # reads in a stack of aligned images, as outputted by ImageJ
-    stack_path = 'datasets/30_data/feb6_orig_flip.tif'
-    stack_size = 30           # number of images in that stack
+    stack_path = 'datasets/4000_results/apr4_4000_flip.tif'
+    stack_size = 188           # number of images in that stack
 
     # separate raw image stack; and write to a stack of individual impages; 
     num_files = split_stack(stack_path, stack_size)
 
-    num_test = stack_size            # uncomment for testing mode; 
     i = 0
 
     # ----- Step 1: make masks for each image, to mark out twin boundaries -----
     # and save to mask_stack folder; 
 
     # call functions in other module for pair-wise comparison
-    while (i < num_test):
+    while (i < stack_size):
 
         # find original img, and make a mask;
-        curr_path = "datasets/30_data/stack_img/img_" + str(i) + ".tif" 
+        curr_path = "datasets/4000_results/stack_img/img_" + str(i) + ".tif" 
         curr_res = make_mask.main(curr_path)
-        res_name = "datasets/30_data/mask_stack/img_" + str(i) + ".tif"
+        res_name = "datasets/4000_results/mask_stack/img_" + str(i) + ".tif"
         cv2.imwrite(res_name, curr_res)
-
-        # curr_path = "datasets/30_data/manip_stack/img_"+ str(i) + ".tif"
-        # curr_res = imgSeg.manip(curr_path)
-        # res_name = "datasets/30_data/manip_stack/img_"+ str(i) + ".tif"
-        # cv2.imwrite(res_name, curr_res)
         i += 1
-    print "finished writing all masks. "
+    print "++ finished writing all masks. "
 
 
     # ----- Step 2: call manip.py to do image segmentations on each image;  -----
     # outputs masks to manip_img folder
-    i = 0
-    while (i < num_test):
+    k = 0
+    while (k < stack_size):
         # call manip on each image, and output to manip_img folder;
-        img_path = "datasets/30_data/stack_img/img_" + str(i) + ".tif" 
-        mask_path = "datasets/30_data/mask_stack/img_" + str(i) + ".tif"
-        manip_res = manip.main(curr_path, mask_path)
-        manip_name = "datasets/30_data/manip_stack/img_" + str(i) + ".tif"
+        img_path = "datasets/4000_results/stack_img/img_" + str(k) + ".tif" 
+        mask_path = "datasets/4000_results/mask_stack/img_" + str(k) + ".tif"
+        manip_res = manip.main(img_path, mask_path)
+        manip_name = "datasets/4000_results/manip_stack_contours/img_" + str(k) + ".tif"
         cv2.imwrite(manip_name, manip_res)
-    print "finished writing all manipulated images. "
+        k += 1
+    print "++ finished writing all manipulated images. "
 
 
 
     #######
+    
 
 
-    sys.exit()
-    # after done with all manip, 
-    # wait for keyboard interruption: Q key, or esc
-    key_int = cv2.waitKey(0)
-    if ((key_int == ord('q')) or (key_int == 27)):              
-        print "User_int: Quit key pressed."
-        cv2.destroyAllWindows()
+
+    # # after done with all manip, 
+    # # wait for keyboard interruption: Q key, or esc
+    # key_int = cv2.waitKey(0)
+    # if ((key_int == ord('q')) or (key_int == 27)):              
+    #     print "User_int: Quit key pressed."
+    #     cv2.destroyAllWindows()
 
 
 
@@ -101,13 +97,13 @@ def split_stack(path, stack_size):
     for i in range(stack_size):
         try:
             stack.seek(i)
-            stack.save('datasets/30_data/stack_img/img_%s.tif'%(i,))
+            stack.save('datasets/4000_results/stack_img/img_%s.tif'%(i,))
             num_file += 1
 
         except EOFError:
             print("EOFError: stack_size %s, but can't find img no. %s" %(stack_size, i)) 
             break
-    print ("split_stack finished.")
+    print ("++ split_stack finished.")
 
     return num_file
 
@@ -115,5 +111,5 @@ def split_stack(path, stack_size):
 
 
 main()
-
+sys.exit()
 

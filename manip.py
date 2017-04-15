@@ -35,42 +35,48 @@ def main(img_path, mask_path):
     ####
 
     img = cv2.imread(img_path)
-    normal_region = binary_thresh (img_path, mask_path)
+    normal_region = binary_thresh(img_path, mask_path)
 
-
+    (height, width) = (img.shape[0:2])
+    # show = cv2.resize(normal_region, (height / 2, width / 2), interpolation = cv2.INTER_CUBIC)
+    # cv2.imshow("here,normal_region ", show)
 
     # ----------- twin region ------------
-    twin_region = histo_eqlz_mask (img_path, mask_path)
-    # twin_region = canny_on_twin(img_path, mask_path)
+    # twin_region = histo_eqlz_mask (img_path, mask_path)
+    twin_region = canny_on_twin(img_path, mask_path)
+    # cv2.imshow("twin, ", twin_region)
     ## twin_show = cv2.resize(twin_region, (height / 2, width / 2), interpolation = cv2.INTER_CUBIC) 
-    ## cv2.imshow("twin_region", twin_show)
-    # result = twin_region 
+    # cv2.imshow("twin_region", twin_region)
     ##1
 
 
     assert twin_region.shape ==  normal_region.shape      # need same shape for bitwise op
     result = cv2.bitwise_or(normal_region, twin_region)
+
+
     
     ### FOR DEBUGGING AND IMAGE SHOWING ONLY
-    # height, width = result.shape[0:2]
+    height, width = result.shape[0:2]
     # result = cv2.resize(result, (height / 2, width / 2), interpolation = cv2.INTER_CUBIC) 
-    # cv2.imshow("combining twin and normal regions", result)
-    ###    
+    # cv2.imshow("result", result)
+    ### 
+    return result   
 
-    num = get_file_number(img_path)
-    name = "datasets/30_data/result_w_contours/img_" + str(num) + ".tif"
+    # num = get_file_number(img_path)
+    # name = "datasets/30_data/result_w_contours/img_" + str(num) + ".tif"
+    # cv2.imwrite(name, result)
+    # sys.exit()
 
-    cv2.imwrite(name, result)
-    sys.exit()
 
-    ## DEBUG: A *MUST* if use cv2.imshow to debug
-    # while (1):
-    #     k = cv2.waitKey(1) & 0xFF
-    #     if (k == 27) or (k == ord("q")): 
-    #         print "User_int: Quit key pressed."
-    #         break
-    # cv2.destroyAllWindows()
-    ##
+
+    # DEBUG: A *MUST* if use cv2.imshow to debug
+    while (1):
+        k = cv2.waitKey(1) & 0xFF
+        if (k == 27) or (k == ord("q")): 
+            print "User_int: Quit key pressed."
+            break
+    cv2.destroyAllWindows()
+    #
 
 
 # binary_thresh: apply binary_threshold to an image; 
@@ -89,6 +95,7 @@ def binary_thresh (img_path, mask_path):
     mask = np.delete(mask, -1, axis = 1)    # delete last col of mask ;
 
     # need to invert mask; currently dark regions (== 0) is the normal regions
+    # cv2.imshow('mask', mask)
     mask = cv2.bitwise_not(mask)
 
     assert (mask.shape == img.shape), ("Error: mask and img have diff dimensions")
@@ -184,6 +191,7 @@ def histo_eqlz_mask (img_path, mask_path):
     return img_b
 
 
+## For DEBUG
 # helper function, to extract file number in a path string; 
 def get_file_number(s):
     # loop through the string;
@@ -193,10 +201,19 @@ def get_file_number(s):
             num += s[i]
     return int(num)
 
-main(sys.argv[1], sys.argv[2])
 
+# ## for DEBUG
 # img_path = "datasets/30_data/stack_img/img_20.tif"
 # mask_path = "datasets/30_data/mask_stack/img_20.tif"
+# main(img_path, mask_path)
+
+# ####
+
+k = 120
+
+# img_path = "datasets/4000_results/stack_img/img_" + str(k) + ".tif" 
+# mask_path = "datasets/4000_results/mask_stack/img_" + str(k) + ".tif"
+# main(img_path, mask_path)
 
 
 
