@@ -24,24 +24,42 @@ def main (path):
     #  try binary on both orig and histed pictures; 
     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     _, orig_bin = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY|cv2.THRESH_OTSU)
+    
 
-    # step 2: flood fill to create a mask;
-    seed_pos = (150, 150)
+    # step 2: flood fill to create a mask;a
+    # this is a spot in the white border. 
+    seed_pos = (134, 134)       # simply bc this number works for whole dataset 
+
+
+
     mask_orig_bin = np.zeros((height + 2, width + 2), np.uint8)
-    # mask_inv = cv2.bitwise_not(mask_orig_bin)
-    # cv2.imshow("mask_inv", mask_inv)
-        # flags set the color used to fill only the mask, not the image;
+            
     cv2.floodFill(orig_bin, mask_orig_bin, seed_pos, newVal= (255, 0, 0), 
                     flags = (4 | (255 << 8) | cv2.FLOODFILL_MASK_ONLY))
+                # flags: color fills only the mask, not the original image;
     
-    # RETURN VALUE: currently onily returns the mask from orig binary img
+
+
+
+    # cv2.imshow('show mask', mask_orig_bin)
+
+    # # DEBUG: A *MUST* if use cv2.imshow to debug
+    # while (1):
+    #     k = cv2.waitKey(1) & 0xFF
+    #     if (k == 27) or (k == ord("q")): 
+    #         print "User_int: Quit key pressed."
+    #         break
+    # cv2.destroyAllWindows()
+
+
     return mask_orig_bin
 
 
 
 
 # path = sys.argv[1]
-main("datasets/30_data/stack_img/img_12.tif")
+# main(path)
+# main("datasets/4000_results/stack_img/img_181.tif")
 
 
 
