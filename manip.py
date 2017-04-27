@@ -27,7 +27,43 @@ def histo_eqlz_mask (mask): return
 def remove_noise (img): return
         # Aims to remove 1-pixel noise in the background 
 
-# def main(img_path, mask_path)
+
+# # trial: create stack of twin regions-only images; 
+# def main():
+
+#     num = 20 
+#     for i in range(0, num):
+#         num  = str(i)
+#         if (i < 10):
+#             num = "00" + num
+#         elif (10 <= i < 100):
+#             num = "0" + num
+
+
+#         img_path = "datasets/30_data/stack_img/img_" + str(num) + ".tif"
+#         mask_path ="datasets/30_data/mask_stack/img_" + str(num) + ".tif"
+        
+#         img = cv2.imread(img_path, 0)
+#         mask = cv2.imread(mask_path, 0)
+
+#         # print img.shape, mask.shape
+
+#         # need to cut out 2 rows and 2 cols, so mask has the same shape as img; 
+#         mask = np.delete(mask, 0, axis = 0)    # delete first row of mask;
+#         mask = np.delete(mask, -1, axis = 0)   # delete last row of mask;
+#         mask = np.delete(mask, 0, axis = 1)    # delete first col of mask ;
+#         mask = np.delete(mask, -1, axis = 1)    # delete last col of mask ;
+
+#         res = cv2.bitwise_and(img, mask)
+#         res_name = "datasets/30_data/twin_only/img_" + str(i) + ".tif"
+#         # cv2.imwrite(res_name, res)
+#     print "done"
+
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
+
+
+
 def main(img_path, mask_path):
     ## currently hard-coded paths; later paths will be fed into main() as inputs
     # img_path = "datasets/30_data/stack_img/img_20.tif"
@@ -35,6 +71,7 @@ def main(img_path, mask_path):
     ####
 
     img = cv2.imread(img_path)
+    
     normal_region = binary_thresh(img_path, mask_path)
 
     (height, width) = (img.shape[0:2])
@@ -44,10 +81,9 @@ def main(img_path, mask_path):
     # ----------- twin region ------------
     # twin_region = histo_eqlz_mask (img_path, mask_path)
     twin_region = canny_on_twin(img_path, mask_path)
-    # cv2.imshow("twin, ", twin_region)
-    ## twin_show = cv2.resize(twin_region, (height / 2, width / 2), interpolation = cv2.INTER_CUBIC) 
-    # cv2.imshow("twin_region", twin_region)
-    ##1
+
+    # twin_show = cv2.resize(twin_region, (height / 2, width / 2), interpolation = cv2.INTER_CUBIC) 
+    # cv2.imshow("twin_region", twin_show)
 
 
     assert twin_region.shape ==  normal_region.shape      # need same shape for bitwise op
@@ -59,8 +95,16 @@ def main(img_path, mask_path):
     height, width = result.shape[0:2]
     # result = cv2.resize(result, (height / 2, width / 2), interpolation = cv2.INTER_CUBIC) 
     # cv2.imshow("result", result)
+
+    # img = cv2.resize(img, (height / 2, width / 2), interpolation = cv2.INTER_CUBIC) 
+    # cv2.imshow("orig", img)
+
+    mask = cv2.imread(mask_path)
+    # mask = cv2.resize(mask, (height / 2, width / 2), interpolation = cv2.INTER_CUBIC) 
+    # cv2.imshow('mask', mask)
     ### 
-    return result   
+
+
 
     # num = get_file_number(img_path)
     # name = "datasets/30_data/result_w_contours/img_" + str(num) + ".tif"
@@ -69,13 +113,15 @@ def main(img_path, mask_path):
 
 
 
-    # DEBUG: A *MUST* if use cv2.imshow to debug
-    while (1):
-        k = cv2.waitKey(1) & 0xFF
-        if (k == 27) or (k == ord("q")): 
-            print "User_int: Quit key pressed."
-            break
-    cv2.destroyAllWindows()
+    # # DEBUG: A *MUST* if use cv2.imshow to debug
+    # while (1):
+    #     k = cv2.waitKey(1) & 0xFF
+    #     if (k == 27) or (k == ord("q")): 
+    #         print "User_int: Quit key pressed."
+    #         break
+    # cv2.destroyAllWindows()
+
+    return result   
     #
 
 
@@ -203,17 +249,11 @@ def get_file_number(s):
 
 
 # ## for DEBUG
-# img_path = "datasets/30_data/stack_img/img_20.tif"
-# mask_path = "datasets/30_data/mask_stack/img_20.tif"
-# main(img_path, mask_path)
 
-# ####
-
-k = 120
-
+# k = 130
 # img_path = "datasets/4000_results/stack_img/img_" + str(k) + ".tif" 
 # mask_path = "datasets/4000_results/mask_stack/img_" + str(k) + ".tif"
-# main(img_path, mask_path)
+# # main(img_path, mask_path)
 
 
 

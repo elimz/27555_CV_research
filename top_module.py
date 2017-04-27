@@ -46,26 +46,55 @@ def main():
     while (i < stack_size):
 
         # find original img, and make a mask;
-        curr_path = "datasets/4000_results/stack_img/img_" + str(i) + ".tif" 
+        name = str(i)
+        if (i < 10):
+            name = "00" + name
+        elif (10 <= i < 100):
+            name = "0" + name
+
+        curr_path = "datasets/4000_results/stack_img/img_" + str(name) + ".tif" 
         curr_res = make_mask.main(curr_path)
-        res_name = "datasets/4000_results/mask_stack/img_" + str(i) + ".tif"
+
+        res_name = "datasets/4000_results/mask_stack/img_" + str(name) + ".tif"
+        # if (i < 10):
+        #     res_name = 'datasets/4000_results/mask_stack/img_00%s.tif'%(i,)
+        # elif (10 <= i < 100):
+        #     res_name = 'datasets/4000_results/mask_stack/img_0%s.tif'%(i,)
+        # else: 
+        #     res_name = 'datasets/4000_results/mask_stack/img_%s.tif'%(i,)
+            
+        # res_name = "datasets/4000_results//img_" + str(i) + ".tif"
         cv2.imwrite(res_name, curr_res)
         i += 1
-    print "++ finished writing all masks. "
+    print "++ step 2/3: finished writing all masks. "
 
 
     # ----- Step 2: call manip.py to do image segmentations on each image;  -----
     # outputs masks to manip_img folder
     k = 0
     while (k < stack_size):
+        name_k = str(k)
+        if (k < 10):
+            name_k = "00" + name_k
+        elif (10 <= k < 100):
+            name_k = "0" + name_k
+
         # call manip on each image, and output to manip_img folder;
-        img_path = "datasets/4000_results/stack_img/img_" + str(k) + ".tif" 
-        mask_path = "datasets/4000_results/mask_stack/img_" + str(k) + ".tif"
+        img_path = "datasets/4000_results/stack_img/img_" + str(name_k) + ".tif" 
+        mask_path = "datasets/4000_results/mask_stack/img_" + str(name_k) + ".tif"
         manip_res = manip.main(img_path, mask_path)
-        manip_name = "datasets/4000_results/manip_stack_contours/img_" + str(k) + ".tif"
-        cv2.imwrite(manip_name, manip_res)
+
+        # if (i < 10):
+        #     res_name = 'datasets/4000_results/manip_stack_contours/img_00%s.tif'%(i,)
+        # elif (10 <= i < 100):
+        #     res_name = 'datasets/4000_results/manip_stack_contours/img_0%s.tif'%(i,)
+        # else: 
+        #     res_name = 'datasets/4000_results/manip_stack_contours/img_%s.tif'%(i,)
+        res_name = "datasets/4000_results/manip_stack_contours/img_" + name_k + ".tif"
+        # manip_name = "datasets/4000_results/manip_stack_contours/img_" + str(k) + ".tif"
+        cv2.imwrite(res_name, manip_res)
         k += 1
-    print "++ finished writing all manipulated images. "
+    print "++ step 3/3: finished writing all manipulated images. "
 
 
 
@@ -97,13 +126,21 @@ def split_stack(path, stack_size):
     for i in range(stack_size):
         try:
             stack.seek(i)
-            stack.save('datasets/4000_results/stack_img/img_%s.tif'%(i,))
+            # save it "001" instead of "1"
+            if (i < 10):
+                name = 'datasets/4000_results/stack_img/img_00%s.tif'%(i,)
+            elif (10 <= i < 100):
+                name = 'datasets/4000_results/stack_img/img_0%s.tif'%(i,)
+            else: 
+                name = 'datasets/4000_results/stack_img/img_%s.tif'%(i,)
+            
+            stack.save(name)
             num_file += 1
 
         except EOFError:
             print("EOFError: stack_size %s, but can't find img no. %s" %(stack_size, i)) 
             break
-    print ("++ split_stack finished.")
+    print ("++ step 1/3: split_stack finished.")
 
     return num_file
 
