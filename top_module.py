@@ -3,30 +3,28 @@
 # Experimenting Image Segmentation on 3D dataset 
 #               with Python OpenCV 3.0
 # 
-# Elim Zhang, Version 1
-# Dec. 25, 2016
+# Prof. Degraef
+# Elim Zhang, Version 2
+#   yilinz@andrew
+# Dec. 25, 2016 (last edit July, 2017)
 # --------------------------------------------------
-# Top Module functions:
-#   - read in a multi-page tiff file, after imageJ aligned the stack;
-#   - histogram_equalization, to adjust picture contrast;  
-#   - calls imgSeg.py
-#       - draw all contours;
-#       - pair-wise comparison, to distinguish between gamma and gamma' phases;
-#   - saves all manipulated images into a folder - manip_stack;
-#       -> feed the stack into ImageJ for a flip-book view;
-# 
+# This is the Top Module for this project;
+#   - It first reads in a multi-page tiff file, an aligned stack outputted by Image J;
+#   - Adjusts image contrast using histogram equalization;
+#   - Calls 'make_mask.py' to produce a stack of masks, which are used to separate 
+#       twin and grain regions, which have different contrasts and thus require 
+#       different segmentation methods;
+#   - Calls 'manip.py' to run segmentation on the two regions of each slice in stack;
+#       returns the segmented results 
 # --------------------------------------------------
-
 
 import cv2 
 from PIL import Image
 import sys
 
 # import subsidiary files: 
-# import imgSeg
 import manip 
 import make_mask
-
 
 def main():
 
@@ -42,7 +40,6 @@ def main():
     # ----- Step 1: make masks for each image, to mark out twin boundaries -----
     # and save to mask_stack folder; 
 
-    # call functions in other module for pair-wise comparison
     while (i < stack_size):
 
         # find original img, and make a mask;
@@ -53,21 +50,13 @@ def main():
             name = "0" + name
 
         curr_path = "datasets/4000_results/stack_img/img_" + str(name) + ".tif" 
-        curr_res = make_mask.main(curr_path)
+        curr_mask = make_mask.main(curr_path)
 
-        res_name = "datasets/4000_results/mask_stack/img_" + str(name) + ".tif"
-        # if (i < 10):
-        #     res_name = 'datasets/4000_results/mask_stack/img_00%s.tif'%(i,)
-        # elif (10 <= i < 100):
-        #     res_name = 'datasets/4000_results/mask_stack/img_0%s.tif'%(i,)
-        # else: 
-        #     res_name = 'datasets/4000_results/mask_stack/img_%s.tif'%(i,)
-            
-        # res_name = "datasets/4000_results//img_" + str(i) + ".tif"
-        cv2.imwrite(res_name, curr_res)
+        mask_name = "datasets/4000_results/mask_stack/img_" + str(name) + ".tif"
+
+        cv2.imwrite(mask_name, curr_mask)
         i += 1
     print "++ step 2/3: finished writing all masks. "
-
 
     # ----- Step 2: call manip.py to do image segmentations on each image;  -----
     # outputs masks to manip_img folder
@@ -83,42 +72,42 @@ def main():
         img_path = "datasets/4000_results/stack_img/img_" + str(name_k) + ".tif" 
         mask_path = "datasets/4000_results/mask_stack/img_" + str(name_k) + ".tif"
         manip_res = manip.main(img_path, mask_path)
-
-        # if (i < 10):
-        #     res_name = 'datasets/4000_results/manip_stack_contours/img_00%s.tif'%(i,)
-        # elif (10 <= i < 100):
-        #     res_name = 'datasets/4000_results/manip_stack_contours/img_0%s.tif'%(i,)
-        # else: 
-        #     res_name = 'datasets/4000_results/manip_stack_contours/img_%s.tif'%(i,)
         res_name = "datasets/4000_results/manip_stack_contours/img_" + name_k + ".tif"
-        # manip_name = "datasets/4000_results/manip_stack_contours/img_" + str(k) + ".tif"
         cv2.imwrite(res_name, manip_res)
         k += 1
+
     print "++ step 3/3: finished writing all manipulated images. "
 
+    # ----- Step (3): call manip.py to do image segmentations on each image;  -----
+    # temporary: for the final presentation; 
+    #       extract an ROI to form a stack to visualize 3D grain structure;
+    j = 0 
+    while(j < stack_size):
+        name_j = str(j)
+        if (j < 10):
+            name_j = "00" + name_j
+        elif (10 <= j < 100):
+            name_j = "0"+name_j
+        img_path =  "datasets/4000_results/manip_stack_contours/img_" + name_j + ".tif"
+        img = cv2.imread(img_path)
+        
+        y_lo_1, y_hi_1 = 100, 600
+        x_lo_1, x_hi_1 = 100, 600
 
+        roi = img[y_lo_1 : y_hi_1, x_lo_1:x_hi_1]
+        roi_name = "datasets/4000_results/roi_stack/img_"+ name_j + ".tif"
 
-    #######
-    
+        cv2.imwrite(roi_name, roi)
+        j += 1
 
-
-
-    # # after done with all manip, 
-    # # wait for keyboard interruption: Q key, or esc
-    # key_int = cv2.waitKey(0)
-    # if ((key_int == ord('q')) or (key_int == 27)):              
-    #     print "User_int: Quit key pressed."
-    #     cv2.destroyAllWindows()
-
-
+    print  "++ temp step: finished writing all manipulated images. "
 
 
 # split multi-page tiff image (output from ImageJ after stack alignment) into 
-# individual images; 
-# ::Return value: num_file, number of files read; 
+#   individual images; (modified code from Stackoverflow)
+# returns the number of files read; 
 # save all images with name "img_<number>.tif", under folder stack_img in 
-# current directory.  (modified code from Stackoverflow)
-
+#   current directory. 
 def split_stack(path, stack_size):
     num_file = 0; 
 
@@ -143,8 +132,6 @@ def split_stack(path, stack_size):
     print ("++ step 1/3: split_stack finished.")
 
     return num_file
-
-
 
 
 main()
